@@ -212,3 +212,11 @@ class Puzzle(object):
             for side in self.sides
             if side.is_closed
         }
+
+    @property
+    def corners(self):
+        return {
+            corner
+            for side in self.sides
+            for corner in side.corners
+        }
