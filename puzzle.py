@@ -7,6 +7,13 @@ class Cell(object):
         self.sides = set()
         self.is_internal = False
 
+    def __unicode__(self):
+        return u'Cell %s %s' % \
+            (self.key, 'internal' if self.is_internal else 'external')
+
+    def __repr__(self):
+        return u'<%s>' % self
+
     def add_sides(self, *sides):
         new_sides = set(sides) - self.sides
         self.sides.update(new_sides)
