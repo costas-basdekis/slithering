@@ -4,7 +4,7 @@ import square_puzzle
 import hexagonal_puzzle
 
 
-class BaseTestPuzzle(object):
+class BaseTestBoard(object):
     puzzle_class = None
     puzzle_kwargs = {}
 
@@ -18,15 +18,12 @@ class BaseTestPuzzle(object):
         self.assertTrue(self.puzzle)
 
 
-class BaseTestPuzzleCells(BaseTestPuzzle):
+class BaseTestBoardCells(BaseTestBoard):
+    minimum_cell_side_count = None
+    maximum_cell_side_count = None
+
     def test_there_are_cells(self):
         self.assertTrue(self.puzzle.cells)
-
-    def test_there_are_internal_cells(self):
-        self.assertTrue(self.puzzle.internal_cells)
-
-    def test_there_are_closed_sides(self):
-        self.assertTrue(self.puzzle.closed_sides)
 
     def test_every_cell_has_sides(self):
         cells_without_sides = {
@@ -44,13 +41,17 @@ class BaseTestPuzzleCells(BaseTestPuzzle):
         }
         self.assertFalse(cells_with_too_few_sides)
 
-    def test_some_cells_have_closed_sides(self):
-        cells_with_closed_sides = {
+    def test_every_cell_has_as_many_sides_as_expected(self):
+        cells_with_unexpected_number_of_sides = {
             cell
             for cell in self.puzzle.cells
-            if cell.closed_sides
+            if not (
+                self.minimum_cell_side_count
+                <= len(cell.sides)
+                <= self.maximum_cell_side_count
+            )
         }
-        self.assertTrue(cells_with_closed_sides)
+        self.assertFalse(cells_with_unexpected_number_of_sides)
 
     def test_all_cells_are_part_of_all_their_sides(self):
         cells_that_are_not_part_of_some_of_their_sides = {
@@ -64,7 +65,7 @@ class BaseTestPuzzleCells(BaseTestPuzzle):
         self.assertFalse(cells_that_are_not_part_of_some_of_their_sides)
 
 
-class BaseTestPuzzleCellsNeighbours(BaseTestPuzzleCells):
+class BaseTestBoardCellsNeighbours(BaseTestBoardCells):
     def test_all_cells_have_neighbours(self):
         cells_without_neighbours = {
             cell
@@ -167,7 +168,7 @@ class BaseTestPuzzleCellsNeighbours(BaseTestPuzzleCells):
             cells_with_adjacent_cells_that_are_not_neighbours_in_order)
 
 
-class BaseTestPuzzleSides(BaseTestPuzzle):
+class BaseTestBoardSides(BaseTestBoard):
     def test_there_are_sides(self):
         self.assertTrue(self.puzzle.sides)
 
@@ -179,7 +180,7 @@ class BaseTestPuzzleSides(BaseTestPuzzle):
         }
         self.assertFalse(sides_without_cells)
 
-    def test_all_sides_one_or_two_cells(self):
+    def test_all_sides_have_one_or_two_cells(self):
         sides_with_not_one_or_two_cells = {
             side
             for side in self.puzzle.sides
@@ -217,6 +218,8 @@ class BaseTestPuzzleSides(BaseTestPuzzle):
         }
         self.assertFalse(sides_that_are_not_part_of_some_of_their_corners)
 
+
+class BaseTestBoardCorners(BaseTestBoard):
     def test_there_are_corners(self):
         self.assertTrue(self.puzzle.corners)
 
@@ -237,12 +240,54 @@ class BaseTestPuzzleSides(BaseTestPuzzle):
         self.assertFalse(corners_with_too_few_sides)
 
 
+class BaseAllBoardTests(
+        BaseTestBoardCellsNeighbours,
+        BaseTestBoardCells,
+        BaseTestBoardSides,
+        BaseTestBoardCorners,
+        BaseTestBoard):
+    pass
+
+
+class BaseTestPuzzle(object):
+    puzzle_class = None
+    puzzle_kwargs = {}
+
+    def setUp(self):
+        self.puzzle = self.create_puzzle()
+        self.puzzle.create_random_puzzle()
+
+    def create_puzzle(self):
+        return self.puzzle_class(**self.puzzle_kwargs)
+
+
+class BaseTestPuzzleCells(BaseTestPuzzle):
+    def test_there_are_closed_sides(self):
+        self.assertTrue(self.puzzle.closed_sides)
+
+    def test_some_cells_have_closed_sides(self):
+        cells_with_closed_sides = {
+            cell
+            for cell in self.puzzle.cells
+            if cell.closed_sides
+        }
+        self.assertTrue(cells_with_closed_sides)
+
+    def test_there_are_internal_cells(self):
+        self.assertTrue(self.puzzle.internal_cells)
+
+
 class BaseAllPuzzleTests(
-        BaseTestPuzzleCellsNeighbours,
         BaseTestPuzzleCells,
-        BaseTestPuzzleSides,
         BaseTestPuzzle):
     pass
+
+
+class TestSquareBoard(BaseAllBoardTests, unittest.TestCase):
+    puzzle_class = square_puzzle.SquarePuzzle
+    puzzle_kwargs = {'width': 20, 'height': 20}
+    minimum_cell_side_count = 4
+    maximum_cell_side_count = 4
 
 
 class TestSquarePuzzle(BaseAllPuzzleTests, unittest.TestCase):
@@ -256,9 +301,16 @@ class TestSquarePuzzle(BaseAllPuzzleTests, unittest.TestCase):
         puzzle.print_cells_membership()
 
 
+class TestHexagonalBoard(BaseAllBoardTests, unittest.TestCase):
+    puzzle_class = hexagonal_puzzle.HexagonalPuzzle
+    puzzle_kwargs = {'width': 3, 'height': 3}
+    minimum_cell_side_count = 6
+    maximum_cell_side_count = 6
+
+
 class TestHexagonalPuzzle(BaseAllPuzzleTests, unittest.TestCase):
     puzzle_class = hexagonal_puzzle.HexagonalPuzzle
-    puzzle_kwargs = {'width': 20, 'height': 20}
+    puzzle_kwargs = {'width': 3, 'height': 3}
 
 
 if __name__ == '__main__':

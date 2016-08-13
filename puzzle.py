@@ -162,7 +162,6 @@ class Puzzle(object):
             cell.key: cell
             for cell in self.cells
         }
-        self.create_random_puzzle()
 
     def create_cells(self):
         raise NotImplementedError()
