@@ -7,136 +7,90 @@ class HexagonalPuzzle(puzzle.Puzzle):
         super(HexagonalPuzzle, self).__init__()
 
     def create_cells(self):
+        corners_by_key = self._create_corners()
+        sides_by_key = self._create_sides(corners_by_key)
+        cells = self._create_cells(sides_by_key)
+
+        return cells
+
+    def _create_cells(self, sides_by_key):
         cells = {
             (x, y): puzzle.Cell((x, y))
             for x in xrange(self.width)
             for y in xrange(self.height)
         }
 
-        corners = self._create_corners()
-
-        self._create_sides(corners)
-
         for x in xrange(self.width):
             for y in xrange(self.height):
                 cell = cells[(x, y)]
                 for corner_index in xrange(6):
                     cell.add_sides(*[
-                        side
-                        for side in corners[(x, y, corner_index)].sides
-                    ])
+                        sides_by_key[(x, y, side_index)]
+                        for side_index in xrange(6)
+                        ])
+                    assert len(cell.sides) == 6, len(cell.sides)
 
         return set(cells.itervalues())
 
     def _create_corners(self):
-        def same(x, y):
-            return x, y
+        positions_by_key = {}
+        for x in xrange(self.width):
+            for y in xrange(0, self.height, 2):
+                positions_by_key[(x, y, 0)] = (2 * x, y)
+                positions_by_key[(x, y, 1)] = (2 * x + 1, y)
+                positions_by_key[(x, y, 2)] = (2 * x + 2, y)
+                positions_by_key[(x, y, 3)] = (2 * x + 2, y + 1)
+                positions_by_key[(x, y, 4)] = (2 * x + 1, y + 1)
+                positions_by_key[(x, y, 5)] = (2 * x, y + 1)
+        for x in xrange(self.width):
+            for y in xrange(1, self.height, 2):
+                positions_by_key[(x, y, 0)] = (2 * x + 1, y)
+                positions_by_key[(x, y, 1)] = (2 * x + 2, y)
+                positions_by_key[(x, y, 2)] = (2 * x + 3, y)
+                positions_by_key[(x, y, 3)] = (2 * x + 3, y + 1)
+                positions_by_key[(x, y, 4)] = (2 * x + 2, y + 1)
+                positions_by_key[(x, y, 5)] = (2 * x + 1, y + 1)
 
-        def left_of(x, y):
-            return x - 1, y
-
-        def right_of(x, y):
-            return x + 1, y
-
-        def top_left_of(x, y):
-            if x % 2 == 0:
-                return x - 1, y - 1
-            else:
-                return x, y - 1
-
-        def top_right_of(x, y):
-            x, y = top_left_of(x, y)
-            return right_of(x, y)
-
-        def bottom_left_of(x, y):
-            if x % 2 == 0:
-                return x - 1, y + 1
-            else:
-                return x, y + 1
-
-        def bottom_right_of(x, y):
-            x, y = bottom_left_of(x, y)
-            return right_of(x, y)
-
-        def make_groups(equivalences):
-            groups = {
-                tuple(sorted([
-                    move(x, y) + (moved_corner,)
-                    for move, moved_corner
-                    in equivalences
-                ]))
-                for x in xrange(self.width)
-                for y in xrange(self.height)
-            }
-            return {
-                item: group
-                for group in groups
-                for item in group
-            }
-
-        corners_groups = {}
-        corners_groups.update(make_groups([
-            (same, 0),
-            (left_of, 4),
-            (bottom_left_of, 2),
-        ]))
-        corners_groups.update(make_groups([
-            (same, 1),
-            (left_of, 3),
-            (top_left_of, 5),
-        ]))
-        corners_groups.update(make_groups([
-            (same, 2),
-            (top_left_of, 4),
-            (top_right_of, 0),
-        ]))
-        corners_groups.update(make_groups([
-            (same, 3),
-            (top_right_of, 5),
-            (right_of, 1),
-        ]))
-        corners_groups.update(make_groups([
-            (same, 4),
-            (right_of, 0),
-            (bottom_right_of, 2),
-        ]))
-        corners_groups.update(make_groups([
-            (same, 5),
-            (bottom_right_of, 1),
-            (bottom_left_of, 3),
-        ]))
-
-        unique_groups = set(corners_groups.itervalues())
-
-        unique_corners = {
-            group: puzzle.Corner()
-            for group in unique_groups
+        corners_by_position = {
+            position: puzzle.Corner()
+            for position in set(positions_by_key.itervalues())
         }
 
-        corners = {
-            (x, y, corner): unique_corners[corners_groups[(x, y, corner)]]
+        corners_by_key = {
+            key: corners_by_position[position]
+            for key, position in positions_by_key.iteritems()
+        }
+
+        return corners_by_key
+
+    def _create_sides(self, corners_by_key):
+        corner_indexes = range(6)
+        next_corner_indexes = corner_indexes[1:] + corner_indexes[:1]
+        corner_index_pairs = zip(corner_indexes, next_corner_indexes)
+
+        all_corner_pairs = {
+            tuple(sorted([
+                corners_by_key[(x, y, corner_index)],
+                corners_by_key[(x, y, next_corner_index)],
+            ]))
             for x in xrange(self.width)
             for y in xrange(self.height)
-            for corner in xrange(6)
+            for corner_index, next_corner_index in corner_index_pairs
         }
-
-        return corners
-
-    def _create_sides(self, corners):
-        corner_indexes = range(6)
-        corner_index_pairs = zip(
-            corner_indexes, corner_indexes[1:] + corner_indexes[:1])
-        for x in xrange(self.width):
-            for y in xrange(self.height):
-                for corner, next_corner in corner_index_pairs:
-                    side = puzzle.Side()
-                    side.add_corners(
-                        corners[(x, y, corner)], corners[x, y, next_corner])
+        sides_by_corner_pairs = {}
+        for corner_pair in all_corner_pairs:
+            side = puzzle.Side()
+            side.add_corners(*corner_pair)
+            sides_by_corner_pairs[corner_pair] = side
 
         sides = {
-            side
-            for corner in corners.itervalues()
-            for side in corner.sides
+            (x, y, corner_index): sides_by_corner_pairs[tuple(sorted([
+                corners_by_key[(x, y, corner_index)],
+                corners_by_key[(x, y, next_corner_index)],
+            ]))]
+            for x in xrange(self.width)
+            for y in xrange(self.height)
+            for corner_index, next_corner_index in corner_index_pairs
         }
 
         return sides
@@ -152,15 +106,15 @@ class HexagonalPuzzle(puzzle.Puzzle):
         return map(self.row, xrange(self.height))
 
     def print_all_possible_hints(self):
-        for row in self.rows:
-            print ' '.join(
-                str(len(cell.closed_sides) or' ')
+        for index, row in enumerate(self.rows):
+            print ' ' * (index % 2) + ' '.join(
+                str(len(cell.closed_sides) or ' ')
                 for cell in row
             )
 
     def print_cells_membership(self):
-        for row in self.rows:
-            print ' '.join(
+        for index, row in enumerate(self.rows):
+            print ' ' * (index % 2) + ' '.join(
                 'I' if cell.is_internal else ' '
                 for cell in row
             )
