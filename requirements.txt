@@ -1,1 +1,3 @@
 ipdb
+
+svgwrite==1.1.8

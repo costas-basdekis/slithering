@@ -1,3 +1,6 @@
+import svgwrite
+import svgwrite.shapes
+
 import puzzle
 
 
@@ -77,3 +80,37 @@ class SquarePuzzle(puzzle.Puzzle):
                 'I' if cell.is_internal else ' '
                 for cell in row
             )
+
+    def create_svg(self, side_width, filename='/tmp/SquarePuzzle.svg'):
+        drawing = svgwrite.Drawing(filename)
+
+        for cell in self.cells:
+            kwargs = {
+                'stroke': svgwrite.rgb(100, 100, 100, '%'),
+            }
+            if cell.is_internal:
+                kwargs['fill'] = '#77DD77'
+            else:
+                kwargs['fill'] = '#779ECB'
+
+            x, y = cell.key
+            drawing.add(svgwrite.shapes.Rect(
+                (x * side_width, y * side_width), (side_width, side_width),
+                **kwargs))
+
+        for side in self.sides:
+            kwargs = {
+                'stroke': svgwrite.rgb(0, 0, 0, '%'),
+            }
+            if not side.is_closed:
+                kwargs['stroke-dasharray'] = '0 2 0'
+                kwargs['stroke-width'] = '0.5px'
+
+            corner1, corner2 = side.corners
+            (x1, y1), (x2, y2) = corner1.key, corner2.key
+            drawing.add(svgwrite.shapes.Line(
+                (x1 * side_width, y1 * side_width),
+                (x2 * side_width, y2 * side_width),
+                **kwargs))
+
+        drawing.save()
