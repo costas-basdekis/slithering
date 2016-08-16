@@ -144,7 +144,8 @@ class Side(object):
 
 
 class Corner(object):
-    def __init__(self):
+    def __init__(self, key):
+        self.key = key
         self.sides = set()
 
     def add_sides(self, *sides):

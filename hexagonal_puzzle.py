@@ -43,9 +43,14 @@ class HexagonalPuzzle(puzzle.Puzzle):
                 positions_by_key[(x, y, 4)] = ((y % 2) + 2 * x + 1, y + 1)
                 positions_by_key[(x, y, 5)] = ((y % 2) + 2 * x, y + 1)
 
+        a_key_py_position = {
+            position: a_key
+            for a_key, position in positions_by_key.iteritems()
+        }
+
         corners_by_position = {
-            position: puzzle.Corner()
-            for position in set(positions_by_key.itervalues())
+            position: puzzle.Corner(a_key)
+            for position, a_key in a_key_py_position.iteritems()
         }
 
         corners_by_key = {

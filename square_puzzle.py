@@ -13,7 +13,7 @@ class SquarePuzzle(puzzle.Puzzle):
             for y in xrange(self.height)
         }
         corners = {
-            (x, y): puzzle.Corner()
+            (x, y): puzzle.Corner((x, y))
             for x in xrange(self.width + 1)
             for y in xrange(self.height + 1)
         }
