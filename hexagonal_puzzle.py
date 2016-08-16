@@ -35,21 +35,13 @@ class HexagonalPuzzle(puzzle.Puzzle):
     def _create_corners(self):
         positions_by_key = {}
         for x in xrange(self.width):
-            for y in xrange(0, self.height, 2):
-                positions_by_key[(x, y, 0)] = (2 * x, y)
-                positions_by_key[(x, y, 1)] = (2 * x + 1, y)
-                positions_by_key[(x, y, 2)] = (2 * x + 2, y)
-                positions_by_key[(x, y, 3)] = (2 * x + 2, y + 1)
-                positions_by_key[(x, y, 4)] = (2 * x + 1, y + 1)
-                positions_by_key[(x, y, 5)] = (2 * x, y + 1)
-        for x in xrange(self.width):
-            for y in xrange(1, self.height, 2):
-                positions_by_key[(x, y, 0)] = (2 * x + 1, y)
-                positions_by_key[(x, y, 1)] = (2 * x + 2, y)
-                positions_by_key[(x, y, 2)] = (2 * x + 3, y)
-                positions_by_key[(x, y, 3)] = (2 * x + 3, y + 1)
-                positions_by_key[(x, y, 4)] = (2 * x + 2, y + 1)
-                positions_by_key[(x, y, 5)] = (2 * x + 1, y + 1)
+            for y in xrange(self.height):
+                positions_by_key[(x, y, 0)] = ((y % 2) + 2 * x, y)
+                positions_by_key[(x, y, 1)] = ((y % 2) + 2 * x + 1, y)
+                positions_by_key[(x, y, 2)] = ((y % 2) + 2 * x + 2, y)
+                positions_by_key[(x, y, 3)] = ((y % 2) + 2 * x + 2, y + 1)
+                positions_by_key[(x, y, 4)] = ((y % 2) + 2 * x + 1, y + 1)
+                positions_by_key[(x, y, 5)] = ((y % 2) + 2 * x, y + 1)
 
         corners_by_position = {
             position: puzzle.Corner()
