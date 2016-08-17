@@ -61,6 +61,14 @@ class BaseTestBoardCells(BaseTestBoard):
         }
         self.assertFalse(cells_that_are_not_part_of_some_of_their_sides)
 
+    def test_some_cells_are_on_edge(self):
+        some_cells_are_on_edge = any(
+            cell.is_on_edge
+            for cell in self.puzzle.cells
+        )
+
+        self.assertTrue(some_cells_are_on_edge)
+
 
 class BaseTestBoardCellsNeighbours(BaseTestBoardCells):
     def test_all_cells_have_neighbours(self):
@@ -214,6 +222,14 @@ class BaseTestBoardSides(BaseTestBoard):
             )
         }
         self.assertFalse(sides_that_are_not_part_of_some_of_their_corners)
+
+    def test_some_sides_are_on_edge(self):
+        some_sides_are_on_edge = any(
+            side.is_on_edge
+            for side in self.puzzle.sides
+        )
+
+        self.assertTrue(some_sides_are_on_edge)
 
 
 class BaseTestBoardCorners(BaseTestBoard):

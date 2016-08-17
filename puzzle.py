@@ -115,6 +115,10 @@ class Cell(object):
     def internal_adjacent_cells_ratio(self):
         return 1. * self.internal_adjacent_cells_count / self.adjacent_cell_count
 
+    @property
+    def is_on_edge(self):
+        return any(side.is_on_edge for side in self.sides)
+
 
 class Side(object):
     def __init__(self):
@@ -146,6 +150,10 @@ class Side(object):
         if len(self.cells) == 1:
             return unique_memberships == {True}
         return unique_memberships == {True, False}
+
+    @property
+    def is_on_edge(self):
+        return len(self.cells) == 1
 
 
 class Corner(object):
