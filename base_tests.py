@@ -262,6 +262,22 @@ class BaseAllBoardTests(
     pass
 
 
+class BaseTestRegularPolygonBoardCells(BaseTestBoardCells):
+    @property
+    def minimum_cell_side_count(self):
+        return self.puzzle_class.cell_sides_count
+
+    @property
+    def maximum_cell_side_count(self):
+        return self.puzzle_class.cell_sides_count
+
+
+class BaseAllRegularPolygonBoardTests(
+        BaseTestRegularPolygonBoardCells,
+        BaseAllBoardTests):
+    pass
+
+
 class BaseTestPuzzle(unittest.TestCase):
     puzzle_class = None
     puzzle_kwargs = {}

@@ -5,11 +5,9 @@ import square_puzzle
 import base_tests
 
 
-class TestSquareBoard(base_tests.BaseAllBoardTests):
+class TestSquareBoard(base_tests.BaseAllRegularPolygonBoardTests):
     puzzle_class = square_puzzle.SquarePuzzle
     puzzle_kwargs = {'width': 20, 'height': 20}
-    minimum_cell_side_count = 4
-    maximum_cell_side_count = 4
 
     def test_cells_in_row_are_neighbours(self):
         cells_that_are_not_neighbours_in_row = {
@@ -47,11 +45,9 @@ class TestSquarePuzzle(base_tests.BaseAllPuzzleTests):
         self.puzzle.print_cells_membership()
 
 
-class TestHexagonalBoard(base_tests.BaseAllBoardTests):
+class TestHexagonalBoard(base_tests.BaseAllRegularPolygonBoardTests):
     puzzle_class = hexagonal_puzzle.HexagonalPuzzle
     puzzle_kwargs = {'width': 20, 'height': 20}
-    minimum_cell_side_count = 6
-    maximum_cell_side_count = 6
 
     def test_cells_in_row_are_neighbours(self):
         cells_that_are_not_neighbours_in_row = {
