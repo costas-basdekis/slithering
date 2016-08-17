@@ -1,4 +1,4 @@
-import puzzle
+from slithering import puzzle
 
 
 class SquarePuzzle(puzzle.RegularPolygonPuzzle):

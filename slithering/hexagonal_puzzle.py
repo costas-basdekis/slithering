@@ -1,6 +1,6 @@
 import math
 
-import puzzle
+from slithering import puzzle
 
 
 class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):

@@ -1,8 +1,9 @@
+from __future__ import absolute_import
+
 import unittest
 
-import hexagonal_puzzle
-import square_puzzle
-import base_tests
+from slithering import square_puzzle, hexagonal_puzzle
+from slithering.tests import base_tests
 
 
 class TestSquareBoard(base_tests.BaseAllRegularPolygonBoardTests):
