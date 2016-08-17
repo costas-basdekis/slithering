@@ -161,6 +161,7 @@ class Corner(object):
 
 class Puzzle(object):
     target_internal_cells_percentage = 0.5
+    svg_generator_class = None
 
     def __init__(self):
         self.cells = self.create_cells()
@@ -233,32 +234,57 @@ class Puzzle(object):
             for corner in side.corners
         }
 
-    def create_svg(self, side_width, filename=None):
+    @classmethod
+    def register_svg_generator_class(cls, svg_generator_class):
+        cls.svg_generator_class = svg_generator_class
+        return svg_generator_class
+
+    def create_svg(self, *args, **kwargs):
+        return self.svg_generator_class(self, *args, **kwargs).svg
+
+
+class RegularPolygonPuzzle(Puzzle):
+    cell_sides_count = None
+
+
+@Puzzle.register_svg_generator_class
+class PuzzleSVG(object):
+    def __init__(self, puzzle, side_width, filename=None):
+        self.puzzle = puzzle
+        self.side_width = side_width
+
         if filename is None:
-            filename = '/tmp/%s.svg' % type(self).__name__
+            filename = '/tmp/%s.svg' % type(self.puzzle).__name__
+        self.filename = filename
 
-        drawing = svgwrite.Drawing(filename)
+        self.svg = self.create_svg()
 
-        for cell in self.cells:
-            self.add_cell_svg(drawing, side_width, cell)
+    def create_svg(self):
+        drawing = svgwrite.Drawing(self.filename)
 
-        for side in self.sides:
-            self.add_side_svg(drawing, side_width, side)
+        for cell in self.puzzle.cells:
+            map(drawing.add, self.create_cell(cell))
+
+        for side in self.puzzle.sides:
+            map(drawing.add, self.create_side(side))
 
         drawing.save()
 
         return drawing
 
-    def add_cell_svg(self, drawing, side_width, cell):
-        self.add_cell_fill_svg(drawing, side_width, cell)
-        self.add_cell_hint_text_svg(drawing, side_width, cell)
+    def create_cell(self, cell):
+        return [
+            self.create_cell_fill(cell),
+            self.add_cell_hint_text(cell),
+        ]
 
-    def add_cell_fill_svg(self, drawing, side_width, cell):
-        kwargs = self.get_cell_fill_kwargs_svg(cell)
-        points = self.get_cell_fill_points_svg(side_width, cell)
-        drawing.add(svgwrite.shapes.Polygon(points, **kwargs))
+    def create_cell_fill(self, cell):
+        kwargs = self.get_cell_fill_kwargs(cell)
+        points = self.get_cell_fill_points(cell)
 
-    def get_cell_fill_kwargs_svg(self, cell):
+        return svgwrite.shapes.Polygon(points, **kwargs)
+
+    def get_cell_fill_kwargs(self, cell):
         kwargs = {
             'stroke': svgwrite.rgb(100, 100, 100, '%'),
         }
@@ -269,16 +295,17 @@ class Puzzle(object):
 
         return kwargs
 
-    def get_cell_fill_points_svg(self, side_width, cell):
+    def get_cell_fill_points(self, cell):
         raise NotImplementedError()
 
-    def add_cell_hint_text_svg(self, drawing, side_width, cell):
-        kwargs = self.get_cell_hint_text_svg_kwargs(cell)
-        point = self.get_cell_hint_text_center_svg(side_width, cell)
-        hint_text = self.get_cell_hint_text_svg(cell)
-        drawing.add(svgwrite.text.Text(hint_text, point, **kwargs))
+    def add_cell_hint_text(self, cell):
+        kwargs = self.get_cell_hint_text_kwargs(cell)
+        point = self.get_cell_hint_text_center(cell)
+        hint_text = self.get_cell_hint_text(cell)
 
-    def get_cell_hint_text_svg_kwargs(self, cell):
+        return svgwrite.text.Text(hint_text, point, **kwargs)
+
+    def get_cell_hint_text_kwargs(self, cell):
         kwargs = {
             'text-anchor': 'middle',
             'style': "dominant-baseline: central;",
@@ -287,31 +314,32 @@ class Puzzle(object):
 
         return kwargs
 
-    def get_cell_hint_text_center_svg(self, side_width, cell):
+    def get_cell_hint_text_center(self, cell):
         cell_x, cell_y = cell.key
-        point = self.get_cell_center_point_svg(side_width, cell_x, cell_y)
+        point = self.get_cell_center_point(cell_x, cell_y)
 
         return point
 
-    def get_cell_center_point_svg(self, side_width, cell_x, cell_y):
+    def get_cell_center_point(self, cell_x, cell_y):
         raise NotImplementedError()
 
-    def get_cell_hint_text_svg(self, cell):
+    def get_cell_hint_text(self, cell):
         hint_text = unicode(len(cell.closed_sides))
 
         return hint_text
 
-    def add_side_svg(self, drawing, side_width, side):
-        self.add_side_line_svg(drawing, side_width, side)
+    def create_side(self, side):
+        return [
+            self.create_side_line(side),
+        ]
 
-    def add_side_line_svg(self, drawing, side_width, side):
-        kwargs = self.get_side_svg_kwargs(side)
-        point_1, point_2 = self.get_side_points_svg(side_width, side)
-        drawing.add(svgwrite.shapes.Line(
-            point_1, point_2,
-            **kwargs))
+    def create_side_line(self, side):
+        kwargs = self.get_side_kwargs(side)
+        point_1, point_2 = self.get_side_points(side)
 
-    def get_side_svg_kwargs(self, side):
+        return svgwrite.shapes.Line(point_1, point_2, **kwargs)
+
+    def get_side_kwargs(self, side):
         kwargs = {
             'stroke': svgwrite.rgb(0, 0, 0, '%'),
             'stroke-width': '2',
@@ -322,59 +350,58 @@ class Puzzle(object):
 
         return kwargs
 
-    def get_side_points_svg(self, side_width, side):
+    def get_side_points(self, side):
         raise NotImplementedError()
 
 
-class RegularPolygonPuzzle(Puzzle):
-    cell_sides_count = None
-
+@RegularPolygonPuzzle.register_svg_generator_class
+class RegularPolygonPuzzleSVG(PuzzleSVG):
     @property
-    def svg_corner_index_offset(self):
-        return self.cell_sides_count / 2 + 0.5
+    def corner_index_offset(self):
+        return self.puzzle.cell_sides_count / 2 + 0.5
 
-    def get_cell_center_point_svg(self, side_width, cell_x, cell_y):
-        size_angle = 2 * math.pi * 1 / (self.cell_sides_count * 2)
+    def get_cell_center_point(self, cell_x, cell_y):
+        size_angle = 2 * math.pi * 1 / (self.puzzle.cell_sides_count * 2)
 
         cell_width = 2 * math.sin(size_angle)
         x_center = (1 + cell_x) * cell_width
-        x = x_center * side_width
+        x = x_center * self.side_width
 
         cell_height = 2 * math.cos(size_angle)
         y_center = (1 + cell_y) * cell_height
-        y = y_center * side_width
+        y = y_center * self.side_width
 
         return (x, y)
 
-    def get_corner_point_svg(self, side_width, cell_x, cell_y, corner_index):
+    def get_corner_point(self, cell_x, cell_y, corner_index):
         x_center, y_center = \
-            self.get_cell_center_point_svg(side_width, cell_x, cell_y)
+            self.get_cell_center_point(cell_x, cell_y)
 
-        corner_angle = 2. * math.pi / self.cell_sides_count
-        angle = corner_angle * (self.svg_corner_index_offset + corner_index)
+        corner_angle = 2. * math.pi / self.puzzle.cell_sides_count
+        angle = corner_angle * (self.corner_index_offset + corner_index)
 
         x_offset = math.cos(angle)
-        x = x_center + x_offset * side_width
+        x = x_center + x_offset * self.side_width
 
         y_offset = math.sin(angle)
-        y = y_center + y_offset * side_width
+        y = y_center + y_offset * self.side_width
 
         return x, y
 
-    def get_cell_fill_points_svg(self, side_width, cell):
+    def get_cell_fill_points(self, cell):
         cell_x, cell_y = cell.key
         points = [
-            self.get_corner_point_svg(side_width, cell_x, cell_y, corner_index)
-            for corner_index in xrange(self.cell_sides_count)
+            self.get_corner_point(cell_x, cell_y, corner_index)
+            for corner_index in xrange(self.puzzle.cell_sides_count)
         ]
 
         return points
 
-    def get_side_points_svg(self, side_width, side):
+    def get_side_points(self, side):
         corner1, corner2 = side.corners
         (x1, y1, corner_index_1), (x2, y2, corner_index_2) = \
             corner1.key, corner2.key
-        point_1 = self.get_corner_point_svg(side_width, x1, y1, corner_index_1)
-        point_2 = self.get_corner_point_svg(side_width, x2, y2, corner_index_2)
+        point_1 = self.get_corner_point(x1, y1, corner_index_1)
+        point_2 = self.get_corner_point(x2, y2, corner_index_2)
 
         return point_1, point_2
