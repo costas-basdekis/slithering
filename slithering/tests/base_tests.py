@@ -173,6 +173,83 @@ class BaseTestBoardCellsNeighbours(BaseTestBoardCells):
             cells_with_adjacent_cells_that_are_not_neighbours_in_order)
 
 
+class BaseTestBoardCellsSides(BaseTestBoardCells):
+    def test_all_cells_have_sides(self):
+        cells_without_sides = {
+            cell
+            for cell in self.puzzle.cells
+            if not cell.sides
+        }
+        self.assertFalse(cells_without_sides)
+
+    def test_all_cells_sides_share_a_corner(self):
+        cells_with_sides_that_dont_share_a_corner = {
+            cell
+            for cell in self.puzzle.cells
+            if any(
+                not cell.corners & side.corners
+                for side in cell.sides
+            )
+        }
+        self.assertFalse(cells_with_sides_that_dont_share_a_corner)
+
+    def test_all_cells_sides_are_as_many_as_corners(self):
+        cells_with_different_count_sides_than_corners = {
+            cell
+            for cell in self.puzzle.cells
+            if len(set(cell.sides)) != len(set(cell.corners))
+        }
+        self.assertFalse(cells_with_different_count_sides_than_corners)
+
+    def test_all_cells_can_order_sides(self):
+        cells_that_cannot_order_sides = {
+            cell
+            for cell in self.puzzle.cells
+            if not cell.ordered_sides
+        }
+        self.assertFalse(cells_that_cannot_order_sides)
+
+    def test_all_cells_ordered_sides_are_all_sides(self):
+        cells_with_different_ordered_sides_than_sides = {
+            cell
+            for cell in self.puzzle.cells
+            if set(cell.ordered_sides) != set(cell.sides)
+        }
+        self.assertFalse(cells_with_different_ordered_sides_than_sides)
+
+    def test_all_cells_ordered_sides_share_a_side_in_order(self):
+        cells_with_sides_that_dont_share_a_side_in_order = {
+            cell
+            for cell, ordered_sides in (
+                (cell, cell.ordered_sides)
+                for cell in self.puzzle.cells
+            )
+            if any(
+                not side.corners & next_side.corners
+                for side, next_side
+                in zip(ordered_sides, ordered_sides[1:] + ordered_sides[:1])
+            )
+        }
+        self.assertFalse(
+            cells_with_sides_that_dont_share_a_side_in_order)
+
+    def test_all_cells_ordered_sides_are_neighbours_in_order(self):
+        cells_with_sides_that_are_not_neighbours_in_order = {
+            cell
+            for cell, ordered_sides in (
+                (cell, cell.ordered_sides)
+                for cell in self.puzzle.cells
+            )
+            if any(
+                side not in next_side.neighbours
+                for side, next_side
+                in zip(ordered_sides, ordered_sides[1:] + ordered_sides[:1])
+            )
+        }
+        self.assertFalse(
+            cells_with_sides_that_are_not_neighbours_in_order)
+
+
 class BaseTestBoardSides(BaseTestBoard):
     def test_there_are_sides(self):
         self.assertTrue(self.puzzle.sides)
@@ -276,6 +353,7 @@ class BaseTestBoardCorners(BaseTestBoard):
 
 class BaseAllBoardTests(
         BaseTestBoardCellsNeighbours,
+        BaseTestBoardCellsSides,
         BaseTestBoardCells,
         BaseTestBoardSidesNeighbours,
         BaseTestBoardSides,

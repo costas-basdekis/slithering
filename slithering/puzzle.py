@@ -42,6 +42,25 @@ class Cell(object):
         }
 
     @property
+    def ordered_sides(self):
+        remaining = set(self.sides)
+        ordered = []
+        side = remaining.pop()
+        ordered.append(side)
+        while remaining:
+            head = ordered[-1]
+            remaining_sides = head.neighbours & remaining
+            if not remaining_sides:
+                ordered.reverse()
+                head = ordered[-1]
+                remaining_sides = head.neighbours & remaining
+            side = remaining_sides.pop()
+            remaining.remove(side)
+            ordered.append(side)
+
+        return ordered
+
+    @property
     def corners(self):
         return {
             corner
