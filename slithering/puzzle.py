@@ -257,9 +257,10 @@ class RegularPolygonPuzzle(Puzzle):
 
 @Puzzle.register_svg_generator_class
 class PuzzleSVG(object):
-    def __init__(self, puzzle, side_width, filename=None):
+    def __init__(self, puzzle, side_width, corner_width, filename=None):
         self.puzzle = puzzle
         self.side_width = side_width
+        self.corner_width = corner_width
 
         if filename is None:
             filename = '/tmp/%s.svg' % type(self.puzzle).__name__
@@ -275,6 +276,9 @@ class PuzzleSVG(object):
 
         for side in self.puzzle.sides:
             map(drawing.add, self.create_side(side))
+
+        for corner in self.puzzle.corners:
+            map(drawing.add, self.create_corner(corner))
 
         drawing.save()
 
@@ -361,6 +365,26 @@ class PuzzleSVG(object):
     def get_side_points(self, side):
         raise NotImplementedError()
 
+    def create_corner(self, corner):
+        return [
+            self.create_corner_dot(corner),
+        ]
+
+    def create_corner_dot(self, corner):
+        kwargs = self.get_corner_dot_kwargs(corner)
+        x, y = self.get_corner_point(corner)
+
+        return svgwrite.shapes.Circle((x, y), self.corner_width, **kwargs)
+
+    def get_corner_point(self, corner):
+        return NotImplementedError()
+
+    def get_corner_dot_kwargs(self, corner):
+        return {
+            'stroke': svgwrite.rgb(0, 0, 0, '%'),
+            'fill': "#000000"
+        }
+
 
 @RegularPolygonPuzzle.register_svg_generator_class
 class RegularPolygonPuzzleSVG(PuzzleSVG):
@@ -381,7 +405,12 @@ class RegularPolygonPuzzleSVG(PuzzleSVG):
 
         return (x, y)
 
-    def get_corner_point(self, cell_x, cell_y, corner_index):
+    def get_corner_point(self, corner):
+        x, y, corner_index = corner.key
+
+        return self.get_corner_point_by_key(x, y, corner_index)
+
+    def get_corner_point_by_key(self, cell_x, cell_y, corner_index):
         x_center, y_center = \
             self.get_cell_center_point(cell_x, cell_y)
 
@@ -399,7 +428,7 @@ class RegularPolygonPuzzleSVG(PuzzleSVG):
     def get_cell_fill_points(self, cell):
         cell_x, cell_y = cell.key
         points = [
-            self.get_corner_point(cell_x, cell_y, corner_index)
+            self.get_corner_point_by_key(cell_x, cell_y, corner_index)
             for corner_index in xrange(self.puzzle.cell_sides_count)
         ]
 
@@ -409,7 +438,7 @@ class RegularPolygonPuzzleSVG(PuzzleSVG):
         corner1, corner2 = side.corners
         (x1, y1, corner_index_1), (x2, y2, corner_index_2) = \
             corner1.key, corner2.key
-        point_1 = self.get_corner_point(x1, y1, corner_index_1)
-        point_2 = self.get_corner_point(x2, y2, corner_index_2)
+        point_1 = self.get_corner_point_by_key(x1, y1, corner_index_1)
+        point_2 = self.get_corner_point_by_key(x2, y2, corner_index_2)
 
         return point_1, point_2
