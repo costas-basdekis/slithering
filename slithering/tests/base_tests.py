@@ -232,6 +232,27 @@ class BaseTestBoardSides(BaseTestBoard):
         self.assertTrue(some_sides_are_on_edge)
 
 
+class BaseTestBoardSidesNeighbours(BaseTestBoardSides):
+    def test_all_sides_have_neighbours(self):
+        sides_without_neighbours = {
+            side
+            for side in self.puzzle.sides
+            if not side.neighbours
+        }
+        self.assertFalse(sides_without_neighbours)
+
+    def test_all_sides_neighbours_share_a_corner(self):
+        sides_with_neighbours_that_dont_share_a_corner = {
+            side
+            for side in self.puzzle.sides
+            if any(
+                not side.corners & neighbour.corners
+                for neighbour in side.neighbours
+            )
+        }
+        self.assertFalse(sides_with_neighbours_that_dont_share_a_corner)
+
+
 class BaseTestBoardCorners(BaseTestBoard):
     def test_there_are_corners(self):
         self.assertTrue(self.puzzle.corners)
@@ -256,6 +277,7 @@ class BaseTestBoardCorners(BaseTestBoard):
 class BaseAllBoardTests(
         BaseTestBoardCellsNeighbours,
         BaseTestBoardCells,
+        BaseTestBoardSidesNeighbours,
         BaseTestBoardSides,
         BaseTestBoardCorners,
         BaseTestBoard):

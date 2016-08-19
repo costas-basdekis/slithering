@@ -140,8 +140,8 @@ class Side(object):
     def neighbours(self):
         return {
             side
-            for cell in self.cells
-            for side in cell.sides
+            for corner in self.corners
+            for side in corner.sides
             if side != self
         }
 
@@ -173,6 +173,15 @@ class Corner(object):
     @property
     def is_active(self):
         return bool(self.sides)
+
+    @property
+    def neighbours(self):
+        return {
+            corner
+            for side in self.sides
+            for corner in side.corners
+            if corner != self
+        }
 
 
 class Puzzle(object):
