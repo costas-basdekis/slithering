@@ -252,6 +252,8 @@ class Puzzle(object):
 
             cell.is_internal = True
 
+        return self
+
     @property
     def internal_cells(self):
         return {
