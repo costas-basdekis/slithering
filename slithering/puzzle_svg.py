@@ -9,6 +9,9 @@ from slithering import puzzle
 
 @puzzle.Puzzle.register_svg_generator_class
 class PuzzleSVG(object):
+    INTERNAL_CELL_FILL_COLOUR = '#77DD77'
+    EXTERNAL_CELL_FILL_COLOUR = '#779ECB'
+
     def __init__(self, puzzle, side_width, corner_width, filename=None):
         self.puzzle = puzzle
         self.side_width = side_width
@@ -49,13 +52,31 @@ class PuzzleSVG(object):
         return svgwrite.shapes.Polygon(points, **kwargs)
 
     def get_cell_fill_kwargs(self, cell):
+        if cell.is_internal:
+            kwargs = self.get_internal_cell_fill_kwargs(cell)
+        else:
+            kwargs = self.get_external_cell_fill_kwargs(cell)
+
+        return kwargs
+
+    def get_base_cell_fill_kwargs(self, cell):
         kwargs = {
             'stroke': svgwrite.rgb(100, 100, 100, '%'),
         }
-        if cell.is_internal:
-            kwargs['fill'] = '#77DD77'
-        else:
-            kwargs['fill'] = '#779ECB'
+
+        return kwargs
+
+    def get_internal_cell_fill_kwargs(self, cell):
+        kwargs = self.get_base_cell_fill_kwargs(cell)
+
+        kwargs['fill'] = self.INTERNAL_CELL_FILL_COLOUR
+
+        return kwargs
+
+    def get_external_cell_fill_kwargs(self, cell):
+        kwargs = self.get_base_cell_fill_kwargs(cell)
+
+        kwargs['fill'] = self.EXTERNAL_CELL_FILL_COLOUR
 
         return kwargs
 
@@ -104,13 +125,32 @@ class PuzzleSVG(object):
         return svgwrite.shapes.Line(point_1, point_2, **kwargs)
 
     def get_side_kwargs(self, side):
+        if side.is_closed:
+            return self.get_closed_side_kwargs(side)
+        else:
+            return self.get_open_side_kwargs(side)
+
+        return kwargs
+
+    def get_base_side_kwargs(self, side):
         kwargs = {
             'stroke': svgwrite.rgb(0, 0, 0, '%'),
-            'stroke-width': '2',
         }
-        if not side.is_closed:
-            kwargs['stroke-dasharray'] = '0 2 0'
-            kwargs['stroke-width'] = '1px'
+
+        return kwargs
+
+    def get_closed_side_kwargs(self, side):
+        kwargs = self.get_base_side_kwargs(side)
+
+        kwargs['stroke-width'] = '2'
+
+        return kwargs
+
+    def get_open_side_kwargs(self, side):
+        kwargs = self.get_base_side_kwargs(side)
+
+        kwargs['stroke-width'] = '1px'
+        kwargs['stroke-dasharray'] = '0 2 0'
 
         return kwargs
 
@@ -132,10 +172,28 @@ class PuzzleSVG(object):
         return NotImplementedError()
 
     def get_corner_dot_kwargs(self, corner):
-        return {
+        if corner.is_active:
+            return self.get_active_corner_dot_kwargs(corner)
+        else:
+            return self.get_inactive_corner_dot_kwargs(corner)
+
+    def get_base_corner_dot_kwargs(self, corner):
+        kwargs = {
             'stroke': svgwrite.rgb(0, 0, 0, '%'),
             'fill': "#000000"
         }
+
+        return kwargs
+
+    def get_active_corner_dot_kwargs(self, corner):
+        kwargs = self.get_base_corner_dot_kwargs(corner)
+
+        return kwargs
+
+    def get_inactive_corner_dot_kwargs(self, corner):
+        kwargs = self.get_base_corner_dot_kwargs(corner)
+
+        return kwargs
 
 
 @puzzle.RegularPolygonPuzzle.register_svg_generator_class
