@@ -459,6 +459,7 @@ class BaseAllRegularPolygonBoardTests(
 class BaseTestPuzzle(unittest.TestCase):
     puzzle_class = None
     puzzle_kwargs = {}
+    puzzle_svg_kwargs = {'side_width': 10, 'corner_width': 1}
 
     def setUp(self):
         self.puzzle = self.create_puzzle()
@@ -466,6 +467,9 @@ class BaseTestPuzzle(unittest.TestCase):
 
     def create_puzzle(self):
         return self.puzzle_class(**self.puzzle_kwargs)
+
+    def test_can_create_svg(self):
+        self.puzzle.create_svg(**self.puzzle_svg_kwargs)
 
 
 class BaseTestPuzzleCells(BaseTestPuzzle):
