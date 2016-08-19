@@ -61,7 +61,7 @@ class Cell(object):
 
     @property
     def ordered_adjacent_cells(self):
-        remaining = self.adjacent_cells
+        remaining = set(self.adjacent_cells)
         ordered = []
         cell = remaining.pop()
         ordered.append(cell)
