@@ -12,6 +12,9 @@ class Cell(object):
         self.sides = set()
         self.is_internal = False
 
+        self.solved = False
+        self.solved_is_internal = None
+
     def __unicode__(self):
         return u'Cell %s %s' % \
             (self.key, 'internal' if self.is_internal else 'external')
@@ -125,6 +128,9 @@ class Side(object):
         self.cells = set()
         self.corners = set()
 
+        self.solved = False
+        self.solved_is_closed = None
+
     def add_cells(self, *cells):
         new_cells = set(cells) - self.cells
         self.cells.update(new_cells)
@@ -161,10 +167,17 @@ class Corner(object):
         self.key = key
         self.sides = set()
 
+        self.solved = False
+        self.solved_is_active = None
+
     def add_sides(self, *sides):
         new_sides = set(sides) - self.sides
         self.sides.update(new_sides)
         [side.add_corners(self) for side in new_sides]
+
+    @property
+    def is_active(self):
+        return bool(self.sides)
 
 
 class Puzzle(object):
