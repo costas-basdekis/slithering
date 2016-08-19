@@ -69,6 +69,19 @@ class Cell(object):
         }
 
     @property
+    def ordered_corners(self):
+        ordered_sides = self.ordered_sides
+        next_ordered_sides = ordered_sides[1:] + ordered_sides[:1]
+
+        return [
+            corner
+            for corner, in (
+                side.corners & next_side.corners
+                for side, next_side in zip(ordered_sides, next_ordered_sides)
+            )
+        ]
+
+    @property
     def adjacent_cells(self):
         return {
             cell
