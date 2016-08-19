@@ -1,6 +1,7 @@
 import math
 
 from slithering import puzzle
+from slithering import puzzle_svg
 
 
 class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
@@ -122,7 +123,7 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
 
 
 @HexagonalPuzzle.register_svg_generator_class
-class HexagonalPuzzleSVG(puzzle.RegularPolygonPuzzleSVG):
+class HexagonalPuzzleSVG(puzzle_svg.RegularPolygonPuzzleSVG):
     def get_cell_center_point(self, cell_x, cell_y):
         size_angle = 2 * math.pi * 1 / 6
 
