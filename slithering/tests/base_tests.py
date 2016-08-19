@@ -459,7 +459,7 @@ class BaseAllRegularPolygonBoardTests(
 class BaseTestPuzzle(unittest.TestCase):
     puzzle_class = None
     puzzle_kwargs = {}
-    puzzle_svg_kwargs = {'side_width': 10, 'corner_width': 1}
+    puzzle_svg_kwargs = {}
 
     def setUp(self):
         self.puzzle = self.create_puzzle()

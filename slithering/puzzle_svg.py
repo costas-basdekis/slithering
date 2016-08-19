@@ -9,7 +9,7 @@ class PuzzleSVG(object):
     INTERNAL_CELL_FILL_COLOUR = '#77DD77'
     EXTERNAL_CELL_FILL_COLOUR = '#779ECB'
 
-    def __init__(self, puzzle, side_width, corner_width, filename=None):
+    def __init__(self, puzzle, side_width=25, corner_width=2, filename=None):
         self.puzzle = puzzle
         self.side_width = side_width
         self.corner_width = corner_width
