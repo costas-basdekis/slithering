@@ -1,5 +1,7 @@
 import random
 
+from slithering import puzzle_svg
+
 
 class Cell(object):
     def __init__(self, key):
@@ -186,7 +188,7 @@ class Corner(object):
 
 class Puzzle(object):
     target_internal_cells_percentage = 0.5
-    svg_generator_class = None
+    svg_generator_class = puzzle_svg.PuzzleSVG
 
     def __init__(self):
         self.cells = self.create_cells()
@@ -270,5 +272,4 @@ class Puzzle(object):
 
 class RegularPolygonPuzzle(Puzzle):
     cell_sides_count = None
-
-import slithering.puzzle_svg # noqa
+    svg_generator_class = puzzle_svg.RegularPolygonPuzzleSVG

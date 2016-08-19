@@ -4,10 +4,7 @@ import svgwrite
 import svgwrite.shapes
 import svgwrite.text
 
-from slithering import puzzle
 
-
-@puzzle.Puzzle.register_svg_generator_class
 class PuzzleSVG(object):
     INTERNAL_CELL_FILL_COLOUR = '#77DD77'
     EXTERNAL_CELL_FILL_COLOUR = '#779ECB'
@@ -196,7 +193,6 @@ class PuzzleSVG(object):
         return kwargs
 
 
-@puzzle.RegularPolygonPuzzle.register_svg_generator_class
 class RegularPolygonPuzzleSVG(PuzzleSVG):
     @property
     def corner_index_offset(self):
