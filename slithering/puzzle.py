@@ -61,6 +61,10 @@ class Cell(object):
         return ordered
 
     @property
+    def hint(self):
+        return len(self.closed_sides)
+
+    @property
     def corners(self):
         return {
             corner
