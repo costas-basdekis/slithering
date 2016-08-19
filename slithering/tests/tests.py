@@ -19,7 +19,7 @@ class TestSquareBoard(base_tests.BaseAllRegularPolygonBoardTests):
                  self.puzzle.cells_by_key[(x + 1, y)])
                 for x in xrange(self.puzzle.width - 1)
             )
-            if not cell in next_cell.neighbours
+            if cell not in next_cell.neighbours
         }
         self.assertFalse(cells_that_are_not_neighbours_in_row)
 
@@ -32,7 +32,7 @@ class TestSquareBoard(base_tests.BaseAllRegularPolygonBoardTests):
                  self.puzzle.cells_by_key[(x, y + 1)])
                 for y in xrange(self.puzzle.height - 1)
             )
-            if not cell in next_cell.neighbours
+            if cell not in next_cell.neighbours
         }
         self.assertFalse(cells_that_are_not_neighbours_in_column)
 
@@ -59,7 +59,7 @@ class TestHexagonalBoard(base_tests.BaseAllRegularPolygonBoardTests):
                  self.puzzle.cells_by_key[(x + 1, y)])
                 for x in xrange(self.puzzle.width - 1)
             )
-            if not cell in next_cell.neighbours
+            if cell not in next_cell.neighbours
         }
         self.assertFalse(cells_that_are_not_neighbours_in_row)
 
@@ -72,7 +72,7 @@ class TestHexagonalBoard(base_tests.BaseAllRegularPolygonBoardTests):
                  self.puzzle.cells_by_key[(x, y + 1)])
                 for y in xrange(self.puzzle.height - 1)
             )
-            if not cell in next_cell.neighbours
+            if cell not in next_cell.neighbours
         }
         self.assertFalse(cells_that_are_not_neighbours_in_column)
 
@@ -85,7 +85,7 @@ class TestHexagonalBoard(base_tests.BaseAllRegularPolygonBoardTests):
                  self.puzzle.cells_by_key[(x - (1 if (y % 2 == 0) else 0), y + 1)])
                 for y in xrange(self.puzzle.height - 1)
             )
-            if not cell in next_cell.neighbours
+            if cell not in next_cell.neighbours
         }
         self.assertFalse(cells_that_are_not_neighbours_in_column)
 
