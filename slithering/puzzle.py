@@ -245,10 +245,23 @@ class Puzzle(object):
         cell = self.get_random_starting_cell_for_puzzle()
         cell.is_internal = True
         while len(self.internal_cells) < target_internal_cells_count:
-            cell = random.choice(tuple(self.non_splitting_border_cells))
+            cells_by_ratio = self.non_splitting_border_cells_by_ratio
+            ratios = sorted(set(cells_by_ratio))
+            minimum_ratio = random.random()
+            passing_ratios = [
+                ratio
+                for ratio in ratios
+                if ratio >= minimum_ratio
+            ]
 
-            if random.random() < cell.internal_adjacent_cells_ratio:
-                continue
+            if not passing_ratios:
+                ratio = ratios[0]
+            else:
+                ratio = passing_ratios[0]
+
+            ratio_cells = cells_by_ratio[ratio]
+
+            cell = random.choice(tuple(ratio_cells))
 
             cell.is_internal = True
 
@@ -288,6 +301,25 @@ class Puzzle(object):
             for cell in self.border_cells
             if cell.are_internal_adjacent_cells_together
         }
+
+    @property
+    def non_splitting_border_cells_by_ratio(self):
+        cells_and_ratios = [
+            (cell, cell.internal_adjacent_cells_ratio)
+            for cell in self.non_splitting_border_cells
+        ]
+
+        ratios = set(ratio for _, ratio in cells_and_ratios)
+        by_ratio = {
+            ratio: {
+                cell
+                for cell, cell_ratio in cells_and_ratios
+                if cell_ratio == ratio
+            }
+            for ratio in ratios
+        }
+
+        return by_ratio
 
     @property
     def sides(self):
