@@ -124,6 +124,11 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
 
 @HexagonalPuzzle.register_svg_generator_class
 class HexagonalPuzzleSVG(puzzle_svg.RegularPolygonPuzzleSVG):
+    pass
+
+
+@HexagonalPuzzleSVG.register_PointMapper
+class HexagonalPointMapperSVG(puzzle_svg.RegularPolygonPointMapper):
     def get_cell_center_point_by_position(self, cell_x, cell_y):
         size_angle = 2 * math.pi * 1 / 6
 
@@ -137,3 +142,8 @@ class HexagonalPuzzleSVG(puzzle_svg.RegularPolygonPuzzleSVG):
         y = y_center * self.side_width
 
         return (x, y)
+
+
+@HexagonalPuzzle.register_unsolved_svg_generator_class
+class UnslovedHexagonalPuzzleSVG(puzzle_svg.UnsolvedRegularPolygonPuzzleSVG, HexagonalPuzzleSVG):
+    pass

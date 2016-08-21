@@ -469,7 +469,12 @@ class BaseTestPuzzle(unittest.TestCase):
         return self.puzzle_class(**self.puzzle_kwargs)
 
     def test_can_create_svg(self):
-        self.puzzle.create_svg(**self.puzzle_svg_kwargs)
+        svg = self.puzzle.create_svg(**self.puzzle_svg_kwargs)
+        print svg.filename
+
+    def test_can_create_unsolved_svg(self):
+        svg = self.puzzle.create_unsolved_svg(**self.puzzle_svg_kwargs)
+        print svg.filename
 
 
 class BaseTestPuzzleCells(BaseTestPuzzle):

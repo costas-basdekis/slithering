@@ -10,6 +10,8 @@ from slithering import strategy_creator
 
 @registrable.registrable
 class PuzzleSVG(object):
+    PointMapper = registrable.Registrable
+
     CellSVG = registrable.Registrable
     SideSVG = registrable.Registrable
     CornerSVG = registrable.Registrable
@@ -20,10 +22,15 @@ class PuzzleSVG(object):
         self.corner_width = corner_width
 
         if filename is None:
-            filename = '/tmp/%s.svg' % type(self.puzzle).__name__
+            filename = self.get_default_filename()
         self.filename = filename
 
+        self.point_mapper = self.PointMapper(self, self.puzzle)
+
         self.svg = self.create_svg()
+
+    def get_default_filename(self):
+        return '/tmp/%s.svg' % type(self.puzzle).__name__
 
     def create_svg(self):
         drawing = svgwrite.Drawing(self.filename)
@@ -49,6 +56,33 @@ class PuzzleSVG(object):
 
     def create_corner(self, corner):
         return self.CornerSVG.create(item=corner, puzzle_svg=self)
+
+    def get_cell_center_point(self, cell):
+        return self.point_mapper.get_cell_center_point(cell)
+
+    def get_corner_point(self, corner):
+        return self.point_mapper.get_corner_point(corner)
+
+
+@PuzzleSVG.register_PointMapper
+class PointMapper(object):
+    def __init__(self, puzzle_svg, puzzle):
+        self.puzzle_svg = puzzle_svg
+        self.puzzle = puzzle
+
+    def get_cell_center_point(self, cell):
+        raise NotImplementedError()
+
+    def get_corner_point(self, corner):
+        raise NotImplementedError()
+
+    @property
+    def side_width(self):
+        return self.puzzle_svg.side_width
+
+    @property
+    def corner_width(self):
+        return self.puzzle_svg.corner_width
 
 
 class PuzzleItemCreator(strategy_creator.StrategyCreator):
@@ -77,6 +111,14 @@ class PuzzleItemCreator(strategy_creator.StrategyCreator):
             creatable.create(puzzle_svg=self.puzzle_svg, item=self.item)
             for creatable in self.creators
         ], [])
+
+    @property
+    def side_width(self):
+        return self.puzzle_svg.side_width
+
+    @property
+    def corner_width(self):
+        return self.puzzle_svg.corner_width
 
     def get_corner_point(self, corner):
         return self.puzzle_svg.get_corner_point(corner)
@@ -152,9 +194,19 @@ class ExternalCellFillSVG(CellFillSVG):
 
 
 @CellSVG.register_CellHintTextSVG
+@registrable.registrable
 class CellHintTextSVG(PuzzleItemCreator):
     item_name = 'cell'
 
+    GivenCellHintTextSVG = registrable.Registrable
+
+    @classmethod
+    def for_item(cls, item):
+        return cls.GivenCellHintTextSVG
+
+
+@CellHintTextSVG.register_GivenCellHintTextSVG
+class GivenCellHintTextSVG(CellHintTextSVG):
     def create_item(self):
         kwargs = self.get_kwargs()
         point = self.get_text_center()
@@ -248,7 +300,7 @@ class OpenSideLineSVG(SideLineSVG):
         kwargs = super(OpenSideLineSVG, self).get_kwargs()
 
         kwargs['stroke-width'] = '1px'
-        kwargs['stroke-dasharray'] = '0 2 0'
+        kwargs['stroke-dasharray'] = '1 5'
 
         return kwargs
 
@@ -290,6 +342,11 @@ class CornerDotSVG(PuzzleItemCreator):
 
 
 class RegularPolygonPuzzleSVG(PuzzleSVG):
+    pass
+
+
+@RegularPolygonPuzzleSVG.register_PointMapper
+class RegularPolygonPointMapper(PointMapper):
     @property
     def corner_index_offset(self):
         return self.puzzle.cell_sides_count / 2 + 0.5
@@ -330,3 +387,80 @@ class RegularPolygonPuzzleSVG(PuzzleSVG):
         y = y_center + y_offset * self.side_width
 
         return x, y
+
+
+class UnsolvedPuzzleSVG(PuzzleSVG):
+    def get_default_filename(self):
+        return '/tmp/%s_unsolved.svg' % type(self.puzzle).__name__
+
+
+@UnsolvedPuzzleSVG.register_CellSVG
+@registrable.registrable
+class UnsolvedCellSVG(CellSVG):
+    pass
+
+
+@UnsolvedCellSVG.register_CellFillSVG
+@registrable.registrable
+class UnsolvedCellFillSVG(UnsolvedCellSVG, CellFillSVG):
+    EmptyCellFillSVG = registrable.Registrable
+
+    @classmethod
+    def for_item(cls, item):
+        if item.solved:
+            return super(UnsolvedCellFillSVG, cls).for_item(item)
+
+        return cls.EmptyCellFillSVG
+
+
+@UnsolvedCellFillSVG.register_EmptyCellFillSVG
+class EmptyCellFillSVG(UnsolvedCellFillSVG):
+    CELL_FILL_COLOUR = '#FFFFFF'
+
+
+@UnsolvedCellSVG.register_CellHintTextSVG
+@registrable.registrable
+class UnsolvedCellHintTextSVG(CellHintTextSVG):
+    WithheldCellHintTextSVG = registrable.Registrable
+
+    @classmethod
+    def for_item(cls, item):
+        if item.hint_is_given:
+            return super(UnsolvedCellHintTextSVG, cls).for_item(item)
+
+        return cls.WithheldCellHintTextSVG
+
+
+@UnsolvedCellHintTextSVG.register_WithheldCellHintTextSVG
+class WithheldCellHintTextSVG(CellHintTextSVG):
+    def create_item(self):
+        return []
+
+
+class UnsolvedRegularPolygonPuzzleSVG(UnsolvedPuzzleSVG, RegularPolygonPuzzleSVG):
+    # PointMapper = RegularPolygonPointMapper
+    pass
+
+
+@UnsolvedPuzzleSVG.register_SideSVG
+@registrable.registrable
+class UnsolvedSideSVG(SideSVG):
+    UnsolvedSideLineSVG = registrable.Registrable
+
+    @classmethod
+    def for_item(cls, item):
+        if item.solved:
+            return super(UnsolvedSideSVG, cls).for_item(item)
+
+        return cls.UnsolvedSideLineSVG
+
+
+@UnsolvedSideSVG.register_UnsolvedSideLineSVG
+class UnsolvedSideLineSVG(SideLineSVG):
+    def get_kwargs(self):
+        kwargs = super(UnsolvedSideLineSVG, self).get_kwargs()
+
+        kwargs['stroke-width'] = '1px'
+        kwargs['stroke-dasharray'] = '0 2 0'
+
+        return kwargs

@@ -227,6 +227,7 @@ class Corner(object):
 class Puzzle(object):
     target_internal_cells_percentage = 0.5
     svg_generator_class = puzzle_svg.PuzzleSVG
+    unsolved_svg_generator_class = puzzle_svg.UnsolvedPuzzleSVG
 
     def __init__(self):
         self.cells = self.create_cells()
@@ -306,10 +307,19 @@ class Puzzle(object):
         cls.svg_generator_class = svg_generator_class
         return svg_generator_class
 
+    @classmethod
+    def register_unsolved_svg_generator_class(cls, unsolved_svg_generator_class):
+        cls.unsolved_svg_generator_class = unsolved_svg_generator_class
+        return unsolved_svg_generator_class
+
     def create_svg(self, *args, **kwargs):
         return self.svg_generator_class(self, *args, **kwargs).svg
+
+    def create_unsolved_svg(self, *args, **kwargs):
+        return self.unsolved_svg_generator_class(self, *args, **kwargs).svg
 
 
 class RegularPolygonPuzzle(Puzzle):
     cell_sides_count = None
     svg_generator_class = puzzle_svg.RegularPolygonPuzzleSVG
+    unsolved_svg_generator_class = puzzle_svg.UnsolvedRegularPolygonPuzzleSVG
