@@ -463,6 +463,7 @@ class BaseTestPuzzle(unittest.TestCase):
 
     def setUp(self):
         self.puzzle = self.create_puzzle()
+        print 'Seed: #%s' % self.puzzle.seed
         self.puzzle.create_random_puzzle()
 
     def create_puzzle(self):

@@ -1,3 +1,4 @@
+import sys
 import random
 
 from slithering import puzzle_svg
@@ -229,12 +230,20 @@ class Puzzle(object):
     svg_generator_class = puzzle_svg.PuzzleSVG
     unsolved_svg_generator_class = puzzle_svg.UnsolvedPuzzleSVG
 
-    def __init__(self):
+    def __init__(self, seed=None):
+        if seed is None:
+            seed = self.get_random_seed()
+        self.seed = seed
+        self.random = random.Random(self.seed)
+
         self.cells = self.create_cells()
         self.cells_by_key = {
             cell.key: cell
             for cell in self.cells
         }
+
+    def get_random_seed(self):
+        return random.randint(0, sys.maxint)
 
     def create_cells(self):
         raise NotImplementedError()
@@ -253,7 +262,7 @@ class Puzzle(object):
     def get_random_cell_for_puzzle(self):
         cells_by_ratio = self.non_splitting_border_cells_by_ratio
         ratios = sorted(set(cells_by_ratio))
-        minimum_ratio = random.random()
+        minimum_ratio = self.random.random()
 
         passing_ratios = [
             ratio
@@ -267,7 +276,7 @@ class Puzzle(object):
             ratio = passing_ratios[0]
 
         ratio_cells = cells_by_ratio[ratio]
-        cell = random.choice(tuple(ratio_cells))
+        cell = self.random.choice(tuple(ratio_cells))
 
         return cell
 
@@ -275,7 +284,7 @@ class Puzzle(object):
         return self.get_random_cell()
 
     def get_random_cell(self):
-        return random.choice(tuple(self.external_cells))
+        return self.random.choice(tuple(self.external_cells))
 
     @property
     def internal_cells(self):

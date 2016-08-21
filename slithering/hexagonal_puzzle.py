@@ -7,9 +7,9 @@ from slithering import puzzle_svg
 class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
     cell_sides_count = 6
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, **kwargs):
         self.width, self.height = width, height
-        super(HexagonalPuzzle, self).__init__()
+        super(HexagonalPuzzle, self).__init__(**kwargs)
 
     def create_cells(self):
         corners_by_key = self._create_corners()

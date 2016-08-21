@@ -4,9 +4,9 @@ from slithering import puzzle
 class SquarePuzzle(puzzle.RegularPolygonPuzzle):
     cell_sides_count = 4
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, **kwargs):
         self.width, self.height = width, height
-        super(SquarePuzzle, self).__init__()
+        super(SquarePuzzle, self).__init__(**kwargs)
 
     def create_cells(self):
         cells = {
