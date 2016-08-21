@@ -245,27 +245,31 @@ class Puzzle(object):
         cell = self.get_random_starting_cell_for_puzzle()
         cell.is_internal = True
         while len(self.internal_cells) < target_internal_cells_count:
-            cells_by_ratio = self.non_splitting_border_cells_by_ratio
-            ratios = sorted(set(cells_by_ratio))
-            minimum_ratio = random.random()
-            passing_ratios = [
-                ratio
-                for ratio in ratios
-                if ratio >= minimum_ratio
-            ]
-
-            if not passing_ratios:
-                ratio = ratios[0]
-            else:
-                ratio = passing_ratios[0]
-
-            ratio_cells = cells_by_ratio[ratio]
-
-            cell = random.choice(tuple(ratio_cells))
-
+            cell = self.get_random_cell_for_puzzle()
             cell.is_internal = True
 
         return self
+
+    def get_random_cell_for_puzzle(self):
+        cells_by_ratio = self.non_splitting_border_cells_by_ratio
+        ratios = sorted(set(cells_by_ratio))
+        minimum_ratio = random.random()
+
+        passing_ratios = [
+            ratio
+            for ratio in ratios
+            if ratio >= minimum_ratio
+        ]
+
+        if not passing_ratios:
+            ratio = ratios[0]
+        else:
+            ratio = passing_ratios[0]
+
+        ratio_cells = cells_by_ratio[ratio]
+        cell = random.choice(tuple(ratio_cells))
+
+        return cell
 
     def get_random_starting_cell_for_puzzle(self):
         return self.get_random_cell()
