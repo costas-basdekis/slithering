@@ -242,8 +242,7 @@ class Puzzle(object):
     def create_random_puzzle(self):
         target_internal_cells_count = \
             len(self.cells) * self.target_internal_cells_percentage
-        # cell = random.choice(tuple(self.external_cells))
-        cell = self.cells_by_key[(self.width / 2, self.height / 2)]
+        cell = self.get_random_starting_cell_for_puzzle()
         cell.is_internal = True
         while len(self.internal_cells) < target_internal_cells_count:
             cell = random.choice(tuple(self.border_cells))
@@ -256,6 +255,12 @@ class Puzzle(object):
             cell.is_internal = True
 
         return self
+
+    def get_random_starting_cell_for_puzzle(self):
+        return self.get_random_cell()
+
+    def get_random_cell(self):
+        return random.choice(tuple(self.external_cells))
 
     @property
     def internal_cells(self):

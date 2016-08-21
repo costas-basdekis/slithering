@@ -97,6 +97,9 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
 
         return sides
 
+    def get_random_starting_cell_for_puzzle(self):
+        return self.cells_by_key[(self.width / 2, self.height / 2)]
+
     def row(self, y):
         return [
             self.cells_by_key[(x, y)]
