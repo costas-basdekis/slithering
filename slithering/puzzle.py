@@ -12,6 +12,8 @@ class Cell(object):
         self.solved = False
         self.solved_is_internal = None
 
+        self.hint_is_given = True
+
     def __unicode__(self):
         return u'Cell %s %s' % \
             (self.key, 'internal' if self.is_internal else 'external')
