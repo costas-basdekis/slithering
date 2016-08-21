@@ -30,6 +30,7 @@ def registrable(cls):
         for register_func in map(make_register_func, keys)
     })
 
-    new_cls = type(cls.__name__, (cls,), attrs)
+    for key, value in attrs.iteritems():
+        setattr(cls, key, value)
 
-    return new_cls
+    return cls
