@@ -22,6 +22,9 @@ class Cell(object):
     def __repr__(self):
         return u'<%s>' % self
 
+    def __lt__(self, other):
+        return self.key.__lt__(other.key)
+
     def add_sides(self, *sides):
         new_sides = set(sides) - self.sides
         self.sides.update(new_sides)
@@ -276,7 +279,7 @@ class Puzzle(object):
             ratio = passing_ratios[0]
 
         ratio_cells = cells_by_ratio[ratio]
-        cell = self.random.choice(tuple(ratio_cells))
+        cell = self.random.choice(sorted(ratio_cells))
 
         return cell
 
@@ -284,7 +287,7 @@ class Puzzle(object):
         return self.get_random_cell()
 
     def get_random_cell(self):
-        return self.random.choice(tuple(self.external_cells))
+        return self.random.choice(sorted(self.external_cells))
 
     @property
     def internal_cells(self):
