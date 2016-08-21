@@ -245,10 +245,8 @@ class Puzzle(object):
         cell = self.get_random_starting_cell_for_puzzle()
         cell.is_internal = True
         while len(self.internal_cells) < target_internal_cells_count:
-            cell = random.choice(tuple(self.border_cells))
+            cell = random.choice(tuple(self.non_splitting_border_cells))
 
-            if not cell.are_internal_adjacent_cells_together:
-                continue
             if random.random() < cell.internal_adjacent_cells_ratio:
                 continue
 
@@ -282,6 +280,14 @@ class Puzzle(object):
             for neighbour in cell.neighbours
         }
         return neighbours - self.internal_cells
+
+    @property
+    def non_splitting_border_cells(self):
+        return {
+            cell
+            for cell in self.border_cells
+            if cell.are_internal_adjacent_cells_together
+        }
 
     @property
     def sides(self):
