@@ -252,15 +252,20 @@ class Puzzle(object):
         raise NotImplementedError()
 
     def create_random_puzzle(self):
+        cells_sequence = iter(self.create_random_puzzle_cells_sequence())
+
         target_internal_cells_count = \
             len(self.cells) * self.target_internal_cells_percentage
-        cell = self.get_random_starting_cell_for_puzzle()
-        cell.is_internal = True
         while len(self.internal_cells) < target_internal_cells_count:
-            cell = self.get_random_cell_for_puzzle()
+            cell = next(cells_sequence)
             cell.is_internal = True
 
         return self
+
+    def create_random_puzzle_cells_sequence(self):
+        yield self.get_random_starting_cell_for_puzzle()
+        while True:
+            yield self.get_random_cell_for_puzzle()
 
     def get_random_cell_for_puzzle(self):
         cells_by_ratio = self.non_splitting_border_cells_by_ratio
