@@ -442,6 +442,13 @@ class Puzzle(object):
             for corner in side.corners
         }
 
+    @property
+    def solved(self):
+        return all(
+            side.solved
+            for side in self.sides
+        )
+
     @classmethod
     def register_svg_generator_class(cls, svg_generator_class):
         cls.svg_generator_class = svg_generator_class

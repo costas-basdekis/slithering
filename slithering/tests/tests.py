@@ -963,5 +963,15 @@ class TestHexagonalPuzzle(base_tests.BaseAllPuzzleTests):
         self.puzzle.print_cells_membership()
 
 
+class TestSquarePuzzleSolver(base_tests.BaseTestPuzzleSolver):
+    puzzle_class = square_puzzle.SquarePuzzle
+    puzzle_kwargs = {'width': 20, 'height': 20}
+
+
+class TestHexagonalPuzzleSolver(base_tests.BaseTestPuzzleSolver):
+    puzzle_class = hexagonal_puzzle.HexagonalPuzzle
+    puzzle_kwargs = {'width': 20, 'height': 20}
+
+
 if __name__ == '__main__':
     unittest.main()

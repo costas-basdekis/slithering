@@ -1,5 +1,7 @@
 import unittest
 
+from slithering import puzzle_solver
+
 
 class BaseTestBoard(unittest.TestCase):
     puzzle_class = None
@@ -497,3 +499,19 @@ class BaseTestBadKeySequencePuzzleCreation(BaseTestPuzzleCreation):
                 cell = puzzle.cells_by_key[key]
                 self.assertIn(cell, puzzle.get_permissible_puzzle_cells())
                 puzzle.add_internal_cell(cell)
+
+
+class BaseTestPuzzleSolver(unittest.TestCase):
+    solver_class = puzzle_solver.PuzzleSolver
+    puzzle_class = None
+    puzzle_kwargs = {}
+
+    def setUp(self):
+        self.puzzle = self.puzzle_class(**self.puzzle_kwargs)
+        print 'Seed: #%s' % self.puzzle.seed
+        self.puzzle.create_random_puzzle()
+        self.solver = self.solver_class(self.puzzle)
+        self.solver.solve()
+
+    def test_can_solve_puzzle(self):
+        self.assertTrue(self.puzzle.solved)
