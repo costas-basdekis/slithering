@@ -209,6 +209,27 @@ class Side(object):
         }
 
     @property
+    def closed_neighbours(self):
+        return {
+            side
+            for side in self.neighbours
+            if side.is_closed
+        }
+
+    @property
+    def closed_neighbours_recursive(self):
+        connected_sides = {self}
+        connected_sides_stack = [self]
+
+        while connected_sides_stack:
+            side = connected_sides_stack.pop()
+            new_sides = side.closed_neighbours - connected_sides
+            connected_sides_stack.extend(new_sides)
+            connected_sides |= new_sides
+
+        return connected_sides
+
+    @property
     def is_closed(self):
         unique_memberships = set(cell.is_internal for cell in self.cells)
         if len(self.cells) == 1:
