@@ -339,10 +339,19 @@ class Puzzle(object):
         cells = []
 
         for cell in cells_sequence:
-            cell.is_internal = True
+            self.add_internal_cell(cell)
             cells.append(cell)
 
         return cells
+
+    def add_internal_cell(self, cell):
+        cell.is_internal = True
+
+    def get_permissible_puzzle_cells(self):
+        if not self.internal_cells:
+            return self.cells
+
+        return self.non_splitting_border_cells
 
     def create_random_puzzle_cells_sequence(self):
         target_internal_cells_count = \
@@ -353,7 +362,9 @@ class Puzzle(object):
             yield self.get_random_cell_for_puzzle()
 
     def get_random_cell_for_puzzle(self):
-        cells_by_ratio = self.non_splitting_border_cells_by_ratio
+        permissible_cells = self.get_permissible_puzzle_cells()
+        cells_by_ratio = \
+            Cell.group_cells_by_internal_adjacent_cells_ratio(permissible_cells)
         ratios = sorted(set(cells_by_ratio))
         minimum_ratio = self.random.random()
 
@@ -377,7 +388,8 @@ class Puzzle(object):
         return self.get_random_cell()
 
     def get_random_cell(self):
-        return self.random.choice(sorted(self.external_cells))
+        permissible_cells = self.get_permissible_puzzle_cells()
+        return self.random.choice(sorted(permissible_cells))
 
     @property
     def internal_cells(self):
