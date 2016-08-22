@@ -189,6 +189,12 @@ class Side(object):
         self.solved = False
         self.solved_is_closed = None
 
+    def __unicode__(self):
+        return u'Side %s - %s' % tuple(self.corners)
+
+    def __repr__(self):
+        return u'<%s>' % self
+
     def add_cells(self, *cells):
         new_cells = set(cells) - self.cells
         self.cells.update(new_cells)
@@ -248,6 +254,12 @@ class Corner(object):
 
         self.solved = False
         self.solved_is_active = None
+
+    def __unicode__(self):
+        return u'Corner %s' % (self.key,)
+
+    def __repr__(self):
+        return u'<%s>' % self
 
     def add_sides(self, *sides):
         new_sides = set(sides) - self.sides
