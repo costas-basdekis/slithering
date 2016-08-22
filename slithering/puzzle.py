@@ -157,6 +157,25 @@ class Cell(object):
     def internal_adjacent_cells_ratio(self):
         return 1. * self.internal_adjacent_cells_count / self.adjacent_cell_count
 
+    @classmethod
+    def group_cells_by_internal_adjacent_cells_ratio(self, cells):
+        cells_and_ratios = [
+            (cell, cell.internal_adjacent_cells_ratio)
+            for cell in cells
+        ]
+
+        ratios = set(ratio for _, ratio in cells_and_ratios)
+        by_ratio = {
+            ratio: {
+                cell
+                for cell, cell_ratio in cells_and_ratios
+                if cell_ratio == ratio
+            }
+            for ratio in ratios
+        }
+
+        return by_ratio
+
     @property
     def is_on_edge(self):
         return any(side.is_on_edge for side in self.sides)
@@ -325,22 +344,8 @@ class Puzzle(object):
 
     @property
     def non_splitting_border_cells_by_ratio(self):
-        cells_and_ratios = [
-            (cell, cell.internal_adjacent_cells_ratio)
-            for cell in self.non_splitting_border_cells
-        ]
-
-        ratios = set(ratio for _, ratio in cells_and_ratios)
-        by_ratio = {
-            ratio: {
-                cell
-                for cell, cell_ratio in cells_and_ratios
-                if cell_ratio == ratio
-            }
-            for ratio in ratios
-        }
-
-        return by_ratio
+        return Cell.group_cells_by_internal_adjacent_cells_ratio(
+            self.non_splitting_border_cells)
 
     @property
     def sides(self):
