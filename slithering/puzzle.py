@@ -102,40 +102,14 @@ class Cell(object):
         }
 
     @property
-    def ordered_adjacent_cells(self):
-        remaining = set(self.adjacent_cells)
-        ordered = []
-        cell = remaining.pop()
-        ordered.append(cell)
-        while remaining:
-            head = ordered[-1]
-            remaining_neighbours = head.neighbours & remaining
-            if not remaining_neighbours:
-                ordered.reverse()
-                head = ordered[-1]
-                remaining_neighbours = head.neighbours & remaining
-            cell = remaining_neighbours.pop()
-            remaining.remove(cell)
-            ordered.append(cell)
-
-        return ordered
-
-    @property
-    def are_internal_adjacent_cells_together(self):
-        ordered_adjacent_cells = self.ordered_adjacent_cells
-        if len(ordered_adjacent_cells) <= 3:
-            return True
-
-        previous_ordered_adjacent_cells = \
-            ordered_adjacent_cells[-1:] + ordered_adjacent_cells[:-1]
-        external_to_internal_count = len([
+    def are_internal_adjacent_cells_connected(self):
+        adjacent_cells = self.adjacent_cells
+        internal_adjacent_cells = [
             cell
-            for cell, previous
-            in zip(ordered_adjacent_cells, previous_ordered_adjacent_cells)
-            if cell.is_internal and not previous.is_internal
-        ])
-
-        return external_to_internal_count <= 1
+            for cell in adjacent_cells
+            if cell.is_internal
+        ]
+        return Cell.are_cells_connected(internal_adjacent_cells)
 
     @property
     def adjacent_cell_count(self):
@@ -175,6 +149,30 @@ class Cell(object):
         }
 
         return by_ratio
+
+    def get_connected_cells_in(self, cells):
+        cells = set(cells) | {self}
+        if len(cells) <= 1:
+            return cells
+
+        connected = {self}
+        connected_stack = [self]
+
+        while connected_stack:
+            cell = connected_stack.pop()
+            new_cells = (cell.neighbours & cells) - connected
+            connected_stack.extend(new_cells)
+            connected.update(new_cells)
+
+        return connected
+
+    @classmethod
+    def are_cells_connected(cls, cells):
+        cells = set(cells)
+        a_cell = set(cells).pop()
+        connected_cells = a_cell.get_connected_cells_in(cells)
+
+        return connected_cells == cells
 
     @property
     def is_on_edge(self):
@@ -417,13 +415,8 @@ class Puzzle(object):
         return {
             cell
             for cell in self.border_cells
-            if cell.are_internal_adjacent_cells_together
+            if cell.are_internal_adjacent_cells_connected
         }
-
-    @property
-    def non_splitting_border_cells_by_ratio(self):
-        return Cell.group_cells_by_internal_adjacent_cells_ratio(
-            self.non_splitting_border_cells)
 
     @property
     def sides(self):

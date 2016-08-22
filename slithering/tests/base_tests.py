@@ -117,15 +117,6 @@ class BaseTestBoardCellsNeighbours(BaseTestBoardCells):
         }
         self.assertFalse(cells_with_adjacent_cells_that_dont_share_a_corner)
 
-    def test_all_cells_can_order_adjacent_cells(self):
-        for cell in self.puzzle.cells:
-            self.assertTrue(cell.ordered_adjacent_cells)
-
-    def test_all_cells_ordered_adjacent_cells_are_all_adjacent_cells(self):
-        for cell in self.puzzle.cells:
-            self.assertEquals(set(cell.ordered_adjacent_cells),
-                              set(cell.adjacent_cells))
-
     def test_all_cells_adjacent_cells_share_a_corner_with_cell(self):
         cells_with_adjacent_cells_that_dont_share_a_corner_with_cell = {
             cell
@@ -137,40 +128,6 @@ class BaseTestBoardCellsNeighbours(BaseTestBoardCells):
         }
         self.assertFalse(
             cells_with_adjacent_cells_that_dont_share_a_corner_with_cell)
-
-    def test_all_cells_ordered_adjacent_cells_share_a_side_in_order(self):
-        cells_with_adjacent_cells_that_dont_share_a_side_in_order = {
-            cell
-            for cell, ordered_adjacent_cells in (
-                (cell, cell.ordered_adjacent_cells)
-                for cell in self.puzzle.cells
-            )
-            if any(
-                not adjacent_cell.sides & next_adjacent_cell.sides
-                for adjacent_cell, next_adjacent_cell
-                # The last one might not be continuous with the first
-                in zip(ordered_adjacent_cells, ordered_adjacent_cells[1:])
-            )
-        }
-        self.assertFalse(
-            cells_with_adjacent_cells_that_dont_share_a_side_in_order)
-
-    def test_all_cells_ordered_adjacent_cells_are_neighbours_in_order(self):
-        cells_with_adjacent_cells_that_are_not_neighbours_in_order = {
-            cell
-            for cell, ordered_adjacent_cells in (
-                (cell, cell.ordered_adjacent_cells)
-                for cell in self.puzzle.cells
-            )
-            if any(
-                adjacent_cell not in next_adjacent_cell.neighbours
-                for adjacent_cell, next_adjacent_cell
-                # The last one might not be continuous with the first
-                in zip(ordered_adjacent_cells, ordered_adjacent_cells[1:])
-            )
-        }
-        self.assertFalse(
-            cells_with_adjacent_cells_that_are_not_neighbours_in_order)
 
 
 class BaseTestBoardCellsSides(BaseTestBoardCells):
