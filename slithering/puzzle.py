@@ -275,19 +275,26 @@ class Puzzle(object):
             cell.is_internal = False
 
     def create_random_puzzle(self):
-        cells_sequence = iter(self.create_random_puzzle_cells_sequence())
-
-        target_internal_cells_count = \
-            len(self.cells) * self.target_internal_cells_percentage
-        while len(self.internal_cells) < target_internal_cells_count:
-            cell = next(cells_sequence)
-            cell.is_internal = True
+        cells_sequence = self.create_random_puzzle_cells_sequence()
+        self.create_random_puzzle_from_cells_sequence(cells_sequence)
 
         return self
 
+    def create_random_puzzle_from_cells_sequence(self, cells_sequence):
+        cells = []
+
+        for cell in cells_sequence:
+            cell.is_internal = True
+            cells.append(cell)
+
+        return cells
+
     def create_random_puzzle_cells_sequence(self):
+        target_internal_cells_count = \
+            len(self.cells) * self.target_internal_cells_percentage
+
         yield self.get_random_starting_cell_for_puzzle()
-        while True:
+        while len(self.internal_cells) < target_internal_cells_count:
             yield self.get_random_cell_for_puzzle()
 
     def get_random_cell_for_puzzle(self):
