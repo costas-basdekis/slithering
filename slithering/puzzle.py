@@ -270,6 +270,10 @@ class Puzzle(object):
     def create_cells(self):
         raise NotImplementedError()
 
+    def clear_puzzle(self):
+        for cell in self.cells:
+            cell.is_internal = False
+
     def create_random_puzzle(self):
         cells_sequence = iter(self.create_random_puzzle_cells_sequence())
 
