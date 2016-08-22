@@ -37,9 +37,6 @@ class TestSquareBoard(base_tests.BaseAllRegularPolygonBoardTests):
         self.assertFalse(cells_that_are_not_neighbours_in_column)
 
 
-# Bad seeds:
-# 1943095418764571628
-# 7379886256663183349
 class TestSquarePuzzle(base_tests.BaseAllPuzzleTests):
     puzzle_class = square_puzzle.SquarePuzzle
     puzzle_kwargs = {'width': 20, 'height': 20}
@@ -49,8 +46,24 @@ class TestSquarePuzzle(base_tests.BaseAllPuzzleTests):
         self.puzzle.print_cells_membership()
 
 
-# Bad seed:
-# 6527052551791180456
+class BadTestSquarePuzzle1(base_tests.BaseTestPuzzleCreation):
+    puzzle_class = square_puzzle.SquarePuzzle
+    puzzle_kwargs = {
+        'width': 20,
+        'height': 20,
+        'seed': 1943095418764571628,
+    }
+
+
+class BadTestSquarePuzzle2(base_tests.BaseTestPuzzleCreation):
+    puzzle_class = square_puzzle.SquarePuzzle
+    puzzle_kwargs = {
+        'width': 20,
+        'height': 20,
+        'seed': 7379886256663183349,
+    }
+
+
 class TestHexagonalBoard(base_tests.BaseAllRegularPolygonBoardTests):
     puzzle_class = hexagonal_puzzle.HexagonalPuzzle
     puzzle_kwargs = {'width': 20, 'height': 20}
@@ -93,6 +106,15 @@ class TestHexagonalBoard(base_tests.BaseAllRegularPolygonBoardTests):
             if cell not in next_cell.neighbours
         }
         self.assertFalse(cells_that_are_not_neighbours_in_column)
+
+
+class BadTestHexagonalBoard1(base_tests.BaseTestPuzzleCreation):
+    puzzle_class = hexagonal_puzzle.HexagonalPuzzle
+    puzzle_kwargs = {
+        'width': 20,
+        'height': 20,
+        'seed': 6527052551791180456,
+    }
 
 
 class TestHexagonalPuzzle(base_tests.BaseAllPuzzleTests):
