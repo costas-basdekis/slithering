@@ -511,3 +511,16 @@ class BaseAllPuzzleTests(
         BaseTestPuzzleCreation,
         BaseTestPuzzle):
     pass
+
+
+class BaseTestBadKeySequencePuzzleCreation(BaseTestPuzzleCreation):
+    key_sequence = None
+
+    def setUp(self):
+        self.puzzle = self.create_puzzle()
+        self.puzzle.create_puzzle_from_key_sequence(self.key_sequence)
+
+    def test_all_closed_sides_are_connected(self):
+        with self.assertRaises(AssertionError):
+            super(BaseTestBadKeySequencePuzzleCreation, self)\
+                .test_all_closed_sides_are_connected()
