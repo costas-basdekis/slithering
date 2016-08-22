@@ -317,6 +317,18 @@ class Puzzle(object):
         for cell in self.cells:
             cell.is_internal = False
 
+    def create_puzzle_from_key_sequence(self, key_sequence):
+        cells_sequence = self.get_cells_from_keys(key_sequence)
+        self.create_random_puzzle_from_cells_sequence(cells_sequence)
+
+        return self
+
+    def get_cells_from_keys(self, keys):
+        return [
+            self.cells_by_key[key]
+            for key in keys
+        ]
+
     def create_random_puzzle(self):
         cells_sequence = self.create_random_puzzle_cells_sequence()
         self.create_random_puzzle_from_cells_sequence(cells_sequence)
