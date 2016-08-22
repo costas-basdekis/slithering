@@ -471,6 +471,13 @@ class BaseTestPuzzleCreation(BaseTestPuzzle):
     def create_puzzle(self):
         return self.puzzle_class(**self.puzzle_kwargs)
 
+    def test_all_closed_sides_are_connected(self):
+        closed_sides = self.puzzle.closed_sides
+        a_side = sorted(closed_sides).pop()
+        connected_sides = a_side.closed_neighbours_recursive
+        unconnected_sides = closed_sides - connected_sides
+        self.assertFalse(unconnected_sides)
+
 
 class BaseTestPuzzleSVG(BaseTestPuzzle):
     def test_can_create_svg(self):
