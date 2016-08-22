@@ -466,9 +466,13 @@ class BaseTestPuzzle(unittest.TestCase):
         print 'Seed: #%s' % self.puzzle.seed
         self.puzzle.create_random_puzzle()
 
+
+class BaseTestPuzzleCreation(BaseTestPuzzle):
     def create_puzzle(self):
         return self.puzzle_class(**self.puzzle_kwargs)
 
+
+class BaseTestPuzzleSVG(BaseTestPuzzle):
     def test_can_create_svg(self):
         svg = self.puzzle.create_svg(**self.puzzle_svg_kwargs)
         print svg.filename
@@ -496,5 +500,7 @@ class BaseTestPuzzleCells(BaseTestPuzzle):
 
 class BaseAllPuzzleTests(
         BaseTestPuzzleCells,
+        BaseTestPuzzleSVG,
+        BaseTestPuzzleCreation,
         BaseTestPuzzle):
     pass
