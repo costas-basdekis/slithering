@@ -195,6 +195,13 @@ class Side(object):
     def __repr__(self):
         return u'<%s>' % self
 
+    def __lt__(self, other):
+        return self.key.__lt__(other.key)
+
+    @property
+    def key(self):
+        return tuple(corner.key for corner in self.corners)
+
     def add_cells(self, *cells):
         new_cells = set(cells) - self.cells
         self.cells.update(new_cells)
@@ -260,6 +267,9 @@ class Corner(object):
 
     def __repr__(self):
         return u'<%s>' % self
+
+    def __lt__(self, other):
+        return self.key.__lt__(other.key)
 
     def add_sides(self, *sides):
         new_sides = set(sides) - self.sides
