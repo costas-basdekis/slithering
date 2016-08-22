@@ -478,6 +478,14 @@ class BaseTestPuzzleCreation(BaseTestPuzzle):
         unconnected_sides = closed_sides - connected_sides
         self.assertFalse(unconnected_sides)
 
+    def test_all_internal_cells_are_connected(self):
+        internal_cells = self.puzzle.internal_cells
+        an_internal_cell = set(internal_cells).pop()
+        connected_internal_cells = \
+            an_internal_cell.get_connected_cells_in(internal_cells)
+        unconnected_internal_cells = internal_cells - connected_internal_cells
+        self.assertFalse(unconnected_internal_cells)
+
 
 class BaseTestPuzzleSVG(BaseTestPuzzle):
     def test_can_create_svg(self):
@@ -524,3 +532,11 @@ class BaseTestBadKeySequencePuzzleCreation(BaseTestPuzzleCreation):
         with self.assertRaises(AssertionError):
             super(BaseTestBadKeySequencePuzzleCreation, self)\
                 .test_all_closed_sides_are_connected()
+
+    def test_key_sequence_is_not_permissible(self):
+        puzzle = self.create_puzzle()
+        with self.assertRaises(AssertionError):
+            for key in self.key_sequence:
+                cell = puzzle.cells_by_key[key]
+                self.assertIn(cell, puzzle.get_permissible_puzzle_cells())
+                puzzle.add_internal_cell(cell)
