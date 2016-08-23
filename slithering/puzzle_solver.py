@@ -1,9 +1,9 @@
 class PuzzleSolver(object):
-    cell_restrictions_classes = []
+    cell_restriction_classes = []
 
     @classmethod
     def register_cell_restriction_class(cls, restriction_class):
-        cls.cell_restrictions_classes.append(restriction_class)
+        cls.cell_restriction_classes.append(restriction_class)
         return restriction_class
 
     def __init__(self, puzzle):
@@ -13,12 +13,22 @@ class PuzzleSolver(object):
 
     def find_new_restrictions(self):
         restrictions = set()
-        for cell in self.puzzle.cells:
-            for restriction_class in self.cell_restrictions_classes:
-                if restriction_class.is_suitable(cell):
-                    restrictions.add(restriction_class(cell))
+
+        restrictions.update(self.find_new_cell_restrictions())
 
         return restrictions
+
+    def find_new_cell_restrictions(self):
+        return self.create_suitable_restrictions(
+            self.puzzle.cells, self.cell_restriction_classes)
+
+    def create_suitable_restrictions(self, items, restriction_classes):
+        return {
+            restriction_class(item)
+            for item in items
+            for restriction_class in restriction_classes
+            if restriction_class.is_suitable(item)
+            }
 
     def apply(self):
         changed = False
