@@ -178,6 +178,26 @@ class Cell(object):
     def is_on_edge(self):
         return any(side.is_on_edge for side in self.sides)
 
+    @property
+    def on_edge_sides(self):
+        return {
+            side
+            for side in self.sides
+            if side.is_on_edge
+        }
+
+    @property
+    def solved_sides(self):
+        return {
+            side
+            for side in self.sides
+            if side.solved
+        }
+
+    @property
+    def unsolved_sides(self):
+        return self.sides - self.solved_sides
+
 
 class Side(object):
     def __init__(self):
@@ -250,6 +270,18 @@ class Side(object):
     @property
     def is_on_edge(self):
         return len(self.cells) == 1
+
+    @property
+    def solved_cells(self):
+        return {
+            cell
+            for cell in self.cells
+            if cell.solved
+        }
+
+    @property
+    def unsolved_cells(self):
+        return self.cells - self.solved_cells
 
 
 class Corner(object):
