@@ -1,19 +1,14 @@
 class PuzzleSolver(object):
     def __init__(self, puzzle):
         self.puzzle = puzzle
-        self.restrictions = self.create_initial_restrictions()
+        self.restrictions = self.find_new_restrictions()
         self.all_restrictions = set(self.restrictions)
-
-    def create_initial_restrictions(self):
-        return {
-            ZeroHintRestriction(cell)
-            for cell in self.puzzle.cells
-            if ZeroHintRestriction.is_suitable(cell)
-        }
 
     def find_new_restrictions(self):
         restrictions = set()
         for cell in self.puzzle.cells:
+            if ZeroHintRestriction.is_suitable(cell):
+                restrictions.add(ZeroHintRestriction(cell))
             if CellSolvedEdgeSideRestriction.is_suitable(cell):
                 restrictions.add(CellSolvedEdgeSideRestriction(cell))
             if CellSolvedSideRestriction.is_suitable(cell):
