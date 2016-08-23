@@ -358,6 +358,26 @@ class Corner(object):
             if corner != self
         }
 
+    @property
+    def closed_sides(self):
+        return {
+            side
+            for side in self.sides
+            if side.is_closed
+        }
+
+    @property
+    def solved_sides(self):
+        return {
+            side
+            for side in self.sides
+            if side.solved
+        }
+
+    @property
+    def unsolved_sides(self):
+        return self.sides - self.solved_sides
+
 
 class Puzzle(object):
     target_internal_cells_percentage = 0.5

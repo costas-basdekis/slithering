@@ -1,9 +1,15 @@
 class PuzzleSolver(object):
     cell_restriction_classes = []
+    corner_restriction_classes = []
 
     @classmethod
     def register_cell_restriction_class(cls, restriction_class):
         cls.cell_restriction_classes.append(restriction_class)
+        return restriction_class
+
+    @classmethod
+    def register_corner_restriction_class(cls, restriction_class):
+        cls.corner_restriction_classes.append(restriction_class)
         return restriction_class
 
     def __init__(self, puzzle):
@@ -15,12 +21,17 @@ class PuzzleSolver(object):
         restrictions = set()
 
         restrictions.update(self.find_new_cell_restrictions())
+        restrictions.update(self.find_new_corner_restrictions())
 
         return restrictions
 
     def find_new_cell_restrictions(self):
         return self.create_suitable_restrictions(
             self.puzzle.cells, self.cell_restriction_classes)
+
+    def find_new_corner_restrictions(self):
+        return self.create_suitable_restrictions(
+            self.puzzle.corners, self.corner_restriction_classes)
 
     def create_suitable_restrictions(self, items, restriction_classes):
         return {
@@ -218,5 +229,46 @@ class CellSolvedSideRestriction(Restriction):
             u"based on sides"
 
         self.cell.solved_is_internal = is_internal
+
+        return changed, new_restrictions
+
+
+@PuzzleSolver.register_corner_restriction_class
+class CornerSingleUnsolvedSide(Restriction):
+    def __init__(self, corner):
+        super(CornerSingleUnsolvedSide, self).__init__()
+        self.corner = corner
+
+    def __hash__(self):
+        return hash((type(self), self.corner.key))
+
+    @classmethod
+    def is_suitable(cls, corner):
+        if len(corner.unsolved_sides) != 1:
+            return False
+
+        return True
+
+    def apply(self):
+        changed = False
+        new_restrictions = set()
+        self.finished = True
+
+        if not self.corner.unsolved_sides:
+            return changed, new_restrictions
+
+        unsolved_side, = self.corner.unsolved_sides
+
+        closed_solved_sides = \
+            self.corner.closed_sides & self.corner.solved_sides
+        if len(closed_solved_sides) > 1:
+            return changed, new_restrictions
+
+        changed = True
+
+        if closed_solved_sides:
+            unsolved_side.solved_is_closed = True
+        else:
+            unsolved_side.solved_is_closed = False
 
         return changed, new_restrictions
