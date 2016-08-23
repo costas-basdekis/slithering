@@ -1,4 +1,11 @@
 class PuzzleSolver(object):
+    cell_restrictions_classes = []
+
+    @classmethod
+    def register_cell_restriction_class(cls, restriction_class):
+        cls.cell_restrictions_classes.append(restriction_class)
+        return restriction_class
+
     def __init__(self, puzzle):
         self.puzzle = puzzle
         self.restrictions = self.find_new_restrictions()
@@ -7,12 +14,9 @@ class PuzzleSolver(object):
     def find_new_restrictions(self):
         restrictions = set()
         for cell in self.puzzle.cells:
-            if ZeroHintRestriction.is_suitable(cell):
-                restrictions.add(ZeroHintRestriction(cell))
-            if CellSolvedEdgeSideRestriction.is_suitable(cell):
-                restrictions.add(CellSolvedEdgeSideRestriction(cell))
-            if CellSolvedSideRestriction.is_suitable(cell):
-                restrictions.add(CellSolvedSideRestriction(cell))
+            for restriction_class in self.cell_restrictions_classes:
+                if restriction_class.is_suitable(cell):
+                    restrictions.add(restriction_class(cell))
 
         return restrictions
 
@@ -70,6 +74,7 @@ class Restriction(object):
         raise NotImplementedError()
 
 
+@PuzzleSolver.register_cell_restriction_class
 class ZeroHintRestriction(Restriction):
     """Cell hint = 0"""
     def __init__(self, cell):
@@ -103,6 +108,7 @@ class ZeroHintRestriction(Restriction):
         return changed, new_restrictions
 
 
+@PuzzleSolver.register_cell_restriction_class
 class CellSolvedEdgeSideRestriction(Restriction):
     """An edge side of cell is solved"""
     def __init__(self, cell):
@@ -155,6 +161,7 @@ class CellSolvedEdgeSideRestriction(Restriction):
         return changed, new_restrictions
 
 
+@PuzzleSolver.register_cell_restriction_class
 class CellSolvedSideRestriction(Restriction):
     """An edge side of cell is solved"""
     def __init__(self, cell):
