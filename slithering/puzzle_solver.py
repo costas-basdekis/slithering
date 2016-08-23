@@ -8,18 +8,16 @@ class PuzzleSolver(object):
         return {
             ZeroHintRestriction(cell)
             for cell in self.puzzle.cells
-            if cell.hint_is_given and (cell.hint == 0)
+            if ZeroHintRestriction.is_suitable(cell)
         }
 
     def find_new_restrictions(self):
         restrictions = set()
         for cell in self.puzzle.cells:
-            if cell.is_on_edge and not cell.solved:
-                if any(side.is_on_edge and side.solved for side in cell.sides):
-                    restrictions.add(CellSolvedEdgeSideRestriction(cell))
-            if not cell.solved:
-                if any(side.solved and any(cell.solved for cell in side.cells) for side in cell.sides):
-                    restrictions.add(CellSolvedSideRestriction(cell))
+            if CellSolvedEdgeSideRestriction.is_suitable(cell):
+                restrictions.add(CellSolvedEdgeSideRestriction(cell))
+            if CellSolvedSideRestriction.is_suitable(cell):
+                restrictions.add(CellSolvedSideRestriction(cell))
 
         return restrictions
 
@@ -61,6 +59,11 @@ class Restriction(object):
     def __hash__(self):
         raise NotImplementedError()
 
+    @classmethod
+    def is_suitable(cls, *args, **kwargs):
+        """Check whether the restriction can be created from the arguments"""
+        raise NotImplementedError()
+
     def apply(self):
         """
         Apply the restriction further, if possible.
@@ -80,6 +83,15 @@ class ZeroHintRestriction(Restriction):
 
     def __hash__(self):
         return hash((type(self), self.cell.key))
+
+    @classmethod
+    def is_suitable(cls, cell):
+        if not cell.hint_is_given:
+            return False
+        if cell.hint != 0:
+            return False
+
+        return True
 
     def apply(self):
         changed = False
@@ -104,6 +116,20 @@ class CellSolvedEdgeSideRestriction(Restriction):
 
     def __hash__(self):
         return hash((type(self), self.cell.key))
+
+    @classmethod
+    def is_suitable(cls, cell):
+        if cell.solved:
+            return False
+
+        if not cell.is_on_edge:
+            return False
+
+        solved_on_edge_sides = cell.solved_sides & cell.on_edge_sides
+        if not any(solved_on_edge_sides):
+            return False
+
+        return True
 
     def apply(self):
         changed = False
@@ -142,6 +168,21 @@ class CellSolvedSideRestriction(Restriction):
 
     def __hash__(self):
         return hash((type(self), self.cell.key))
+
+    @classmethod
+    def is_suitable(cls, cell):
+        if cell.solved:
+            return False
+
+        solved_sides_with_solved_cell = {
+            side
+            for side in cell.solved_sides
+            if any(side.solved_cells)
+        }
+        if not any(solved_sides_with_solved_cell):
+            return False
+
+        return True
 
     def apply(self):
         changed = False
