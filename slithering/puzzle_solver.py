@@ -98,10 +98,9 @@ class ZeroHintRestriction(Restriction):
         new_restrictions = set()
 
         for side in self.cell.sides:
-            assert not side.solved or not side.solved_is_closed
-            if (side.solved, side.solved_is_closed) != (True, False):
+            if not side.solved:
                 changed = True
-                side.solved, side.solved_is_closed = True, False
+                side.solved_is_closed = False
 
         self.finished = True
 
@@ -155,7 +154,6 @@ class CellSolvedEdgeSideRestriction(Restriction):
             u"Invalid state: a cell should be both internal and external, " \
             u"based on sides"
 
-        self.cell.solved = True
         self.cell.solved_is_internal = is_internal
 
         return changed, new_restrictions
@@ -209,7 +207,6 @@ class CellSolvedSideRestriction(Restriction):
             u"Invalid state: a cell should be both internal and external, " \
             u"based on sides"
 
-        self.cell.solved = True
         self.cell.solved_is_internal = is_internal
 
         return changed, new_restrictions

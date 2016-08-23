@@ -10,8 +10,7 @@ class Cell(object):
         self.sides = set()
         self.is_internal = False
 
-        self.solved = False
-        self.solved_is_internal = None
+        self._solved = False
 
         self.hint_is_given = True
 
@@ -24,6 +23,20 @@ class Cell(object):
 
     def __lt__(self, other):
         return self.key.__lt__(other.key)
+
+    @property
+    def solved(self):
+        return self._solved
+
+    @property
+    def solved_is_internal(self):
+        assert self.solved, "Hasn't solved %s yet" % self
+        return self.is_internal
+
+    @solved_is_internal.setter
+    def solved_is_internal(self, value):
+        assert value == self.is_internal, "Solved wrong value for %s" % self
+        self._solved = True
 
     def add_sides(self, *sides):
         new_sides = set(sides) - self.sides
@@ -204,8 +217,7 @@ class Side(object):
         self.cells = set()
         self.corners = set()
 
-        self.solved = False
-        self.solved_is_closed = None
+        self._solved = False
 
     def __unicode__(self):
         return u'Side %s - %s' % tuple(self.corners)
@@ -219,6 +231,20 @@ class Side(object):
     @property
     def key(self):
         return tuple(corner.key for corner in self.corners)
+
+    @property
+    def solved(self):
+        return self._solved
+
+    @property
+    def solved_is_closed(self):
+        assert self.solved, "Hasn't solved %s yet" % self
+        return self.is_closed
+
+    @solved_is_closed.setter
+    def solved_is_closed(self, value):
+        assert value == self.is_closed, "Solved wrong value for %s" % self
+        self._solved = True
 
     def add_cells(self, *cells):
         new_cells = set(cells) - self.cells
@@ -289,8 +315,7 @@ class Corner(object):
         self.key = key
         self.sides = set()
 
-        self.solved = False
-        self.solved_is_active = None
+        self._solved = False
 
     def __unicode__(self):
         return u'Corner %s' % (self.key,)
@@ -300,6 +325,20 @@ class Corner(object):
 
     def __lt__(self, other):
         return self.key.__lt__(other.key)
+
+    @property
+    def solved(self):
+        return self._solved
+
+    @property
+    def solved_is_active(self):
+        assert self.solved, "Haven't solved %s yet" % self
+        return self.is_active
+
+    @solved_is_active.setter
+    def solved_is_active(self, value):
+        assert value == self.is_active, "Solved wrong value for %s" % self
+        self._solved = True
 
     def add_sides(self, *sides):
         new_sides = set(sides) - self.sides
