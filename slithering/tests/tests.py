@@ -39,7 +39,7 @@ class TestSquareBoard(base_tests.BaseAllRegularPolygonBoardTests):
 
 class TestSquarePuzzle(base_tests.BaseAllPuzzleTests):
     puzzle_class = square_puzzle.SquarePuzzle
-    puzzle_kwargs = {'width': 20, 'height': 20}
+    puzzle_kwargs = {'width': 20, 'height': 20, 'seed': 3125568123140421500}
 
     def test_debug_info(self):
         self.puzzle.print_all_possible_hints()
@@ -956,7 +956,7 @@ class BadTestKeySequenceHexagonalBoard6527052551791180456(
 
 class TestHexagonalPuzzle(base_tests.BaseAllPuzzleTests):
     puzzle_class = hexagonal_puzzle.HexagonalPuzzle
-    puzzle_kwargs = {'width': 20, 'height': 20}
+    puzzle_kwargs = {'width': 20, 'height': 20, 'seed': 1177294445585927408}
 
     def test_debug_info(self):
         self.puzzle.print_all_possible_hints()
