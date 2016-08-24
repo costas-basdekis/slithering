@@ -289,3 +289,32 @@ class CornerSingleUnsolvedSide(CornerRestriction):
             unsolved_side.solved_is_closed = False
 
         return changed, new_restrictions
+
+
+@PuzzleSolver.register_corner_restriction_class
+class CornerTwoSolvedSides(CornerRestriction):
+    @classmethod
+    def is_suitable(cls, puzzle, corner):
+        if not corner.unsolved_sides:
+            return False
+
+        solved_closed_sides = {
+            side
+            for side in corner.solved_sides
+            if side.is_closed
+        }
+        if len(solved_closed_sides) != 2:
+            return False
+
+        return True
+
+    def apply(self):
+        changed = False
+        new_restrictions = set()
+        self.finished = True
+
+        for side in self.corner.unsolved_sides:
+            changed = True
+            side.solved_is_closed = False
+
+        return changed, new_restrictions
