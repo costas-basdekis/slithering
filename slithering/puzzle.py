@@ -367,6 +367,10 @@ class Corner(object):
         }
 
     @property
+    def open_sides(self):
+        return self.sides - self.closed_sides
+
+    @property
     def solved_sides(self):
         return {
             side
@@ -377,6 +381,14 @@ class Corner(object):
     @property
     def unsolved_sides(self):
         return self.sides - self.solved_sides
+
+    @property
+    def solved_closed_sides(self):
+        return self.solved_sides & self.closed_sides
+
+    @property
+    def solved_open_sides(self):
+        return self.solved_sides & self.open_sides
 
 
 class Puzzle(object):

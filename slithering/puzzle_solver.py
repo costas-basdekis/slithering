@@ -298,12 +298,7 @@ class CornerTwoSolvedSides(CornerRestriction):
         if not corner.unsolved_sides:
             return False
 
-        solved_closed_sides = {
-            side
-            for side in corner.solved_sides
-            if side.is_closed
-        }
-        if len(solved_closed_sides) != 2:
+        if len(corner.solved_closed_sides) != 2:
             return False
 
         return True
