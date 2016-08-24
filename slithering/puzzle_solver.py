@@ -1,10 +1,16 @@
 class PuzzleSolver(object):
     cell_restriction_classes = []
+    side_restriction_classes = []
     corner_restriction_classes = []
 
     @classmethod
     def register_cell_restriction_class(cls, restriction_class):
         cls.cell_restriction_classes.append(restriction_class)
+        return restriction_class
+
+    @classmethod
+    def register_side_restriction_class(cls, restriction_class):
+        cls.side_restriction_classes.append(restriction_class)
         return restriction_class
 
     @classmethod
@@ -21,6 +27,7 @@ class PuzzleSolver(object):
         restrictions = set()
 
         restrictions.update(self.find_new_cell_restrictions())
+        restrictions.update(self.find_new_side_restrictions())
         restrictions.update(self.find_new_corner_restrictions())
 
         return restrictions
@@ -28,6 +35,10 @@ class PuzzleSolver(object):
     def find_new_cell_restrictions(self):
         return self.create_suitable_restrictions(
             self.puzzle.cells, self.cell_restriction_classes)
+
+    def find_new_side_restrictions(self):
+        return self.create_suitable_restrictions(
+            self.puzzle.sides, self.side_restriction_classes)
 
     def find_new_corner_restrictions(self):
         return self.create_suitable_restrictions(
