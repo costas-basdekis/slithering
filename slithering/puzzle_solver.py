@@ -106,15 +106,36 @@ class Restriction(object):
         raise NotImplementedError()
 
 
-@PuzzleSolver.register_cell_restriction_class
-class ZeroHintRestriction(Restriction):
-    """Cell hint = 0"""
+class CellRestriction(Restriction):
     def __init__(self, cell):
-        super(ZeroHintRestriction, self).__init__()
+        super(CellRestriction, self).__init__()
         self.cell = cell
 
     def __hash__(self):
         return hash((type(self), self.cell.key))
+
+    @classmethod
+    def is_suitable(cls, puzzle, cell):
+        return super(CellRestriction, cls).is_suitable(puzzle=puzzle, cell=cell)
+
+
+class CornerRestriction(Restriction):
+    def __init__(self, corner):
+        super(CornerRestriction, self).__init__()
+        self.corner = corner
+
+    def __hash__(self):
+        return hash((type(self), self.corner.key))
+
+    @classmethod
+    def is_suitable(cls, puzzle, corner):
+        return super(CornerRestriction, cls)\
+            .is_suitable(puzzle=puzzle, corner=corner)
+
+
+@PuzzleSolver.register_cell_restriction_class
+class ZeroHintRestriction(CellRestriction):
+    """Cell hint = 0"""
 
     @classmethod
     def is_suitable(cls, cell):
@@ -140,15 +161,8 @@ class ZeroHintRestriction(Restriction):
 
 
 @PuzzleSolver.register_cell_restriction_class
-class CellSolvedEdgeSideRestriction(Restriction):
+class CellSolvedEdgeSideRestriction(CellRestriction):
     """An edge side of cell is solved"""
-    def __init__(self, cell):
-        super(CellSolvedEdgeSideRestriction, self).__init__()
-        self.cell = cell
-
-    def __hash__(self):
-        return hash((type(self), self.cell.key))
-
     @classmethod
     def is_suitable(cls, cell):
         if cell.solved:
@@ -192,15 +206,8 @@ class CellSolvedEdgeSideRestriction(Restriction):
 
 
 @PuzzleSolver.register_cell_restriction_class
-class CellSolvedSideRestriction(Restriction):
+class CellSolvedSideRestriction(CellRestriction):
     """An edge side of cell is solved"""
-    def __init__(self, cell):
-        super(CellSolvedSideRestriction, self).__init__()
-        self.cell = cell
-
-    def __hash__(self):
-        return hash((type(self), self.cell.key))
-
     @classmethod
     def is_suitable(cls, cell):
         if cell.solved:
@@ -245,14 +252,7 @@ class CellSolvedSideRestriction(Restriction):
 
 
 @PuzzleSolver.register_corner_restriction_class
-class CornerSingleUnsolvedSide(Restriction):
-    def __init__(self, corner):
-        super(CornerSingleUnsolvedSide, self).__init__()
-        self.corner = corner
-
-    def __hash__(self):
-        return hash((type(self), self.corner.key))
-
+class CornerSingleUnsolvedSide(CornerRestriction):
     @classmethod
     def is_suitable(cls, corner):
         if len(corner.unsolved_sides) != 1:
