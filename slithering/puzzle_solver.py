@@ -1,7 +1,13 @@
 class PuzzleSolver(object):
+    puzzle_restriction_classes = []
     cell_restriction_classes = []
     side_restriction_classes = []
     corner_restriction_classes = []
+
+    @classmethod
+    def register_puzzle_restriction_class(cls, restriction_class):
+        cls.puzzle_restriction_classes.append(restriction_class)
+        return restriction_class
 
     @classmethod
     def register_cell_restriction_class(cls, restriction_class):
@@ -26,11 +32,16 @@ class PuzzleSolver(object):
     def find_new_restrictions(self):
         restrictions = set()
 
+        restrictions.update(self.find_new_puzzle_restrictions())
         restrictions.update(self.find_new_cell_restrictions())
         restrictions.update(self.find_new_side_restrictions())
         restrictions.update(self.find_new_corner_restrictions())
 
         return restrictions
+
+    def find_new_puzzle_restrictions(self):
+        return self.create_suitable_puzzle_restrictions(
+            [self.puzzle], self.puzzle_restriction_classes)
 
     def find_new_cell_restrictions(self):
         return self.create_suitable_puzzle_restrictions(
@@ -111,6 +122,13 @@ class PuzzleRestriction(Restriction):
         super(PuzzleRestriction, self).__init__()
         self.puzzle = puzzle
 
+    def __hash__(self):
+        return hash((type(self), self.puzzle))
+
+    @classmethod
+    def is_suitable(cls, puzzle):
+        raise NotImplementedError()
+
 
 class CellRestriction(PuzzleRestriction):
     def __init__(self, puzzle, cell):
@@ -122,7 +140,7 @@ class CellRestriction(PuzzleRestriction):
 
     @classmethod
     def is_suitable(cls, puzzle, cell):
-        return super(CellRestriction, cls).is_suitable(puzzle=puzzle, cell=cell)
+        raise NotImplementedError()
 
 
 class CornerRestriction(PuzzleRestriction):
