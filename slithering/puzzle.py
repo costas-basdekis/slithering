@@ -398,7 +398,7 @@ class Corner(object):
 
     @property
     def is_active(self):
-        return bool(self.sides)
+        return bool(self.sides.closed)
 
     @property
     def neighbours(self):
