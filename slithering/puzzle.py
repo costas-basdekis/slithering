@@ -381,14 +381,14 @@ class Corner(object):
         return self._solved
 
     @property
-    def solved_is_active(self):
+    def solved_is_used(self):
         assert self.solved, "Haven't solved %s yet" % self
-        return self.is_active
+        return self.is_used
 
-    @solved_is_active.setter
-    def solved_is_active(self, value):
-        assert value == self.is_active, \
-            "Solved wrong value for %s: should be %s" % (self, self.is_active)
+    @solved_is_used.setter
+    def solved_is_used(self, value):
+        assert value == self.is_used, \
+            "Solved wrong value for %s: should be %s" % (self, self.is_used)
         self._solved = True
 
     def add_sides(self, *sides):
@@ -397,7 +397,7 @@ class Corner(object):
         [side.add_corners(self) for side in new_sides]
 
     @property
-    def is_active(self):
+    def is_used(self):
         return bool(self.sides.closed)
 
     @property
@@ -406,9 +406,9 @@ class Corner(object):
 
 
 class Corners(KeyedSet):
-    def solve(self, is_active):
+    def solve(self, is_used):
         for corner in self:
-            corner.solved_is_active = is_active
+            corner.solved_is_used = is_used
 
         return self
 
