@@ -454,12 +454,14 @@ class BaseTestPuzzleSVG(BaseTestPuzzle):
 
     def test_can_create_solved_svg(self):
         solver = self.solver_class(self.puzzle)
-        solver.solve()
-        puzzle_svg_kwargs = dict(self.puzzle_svg_kwargs)
-        filename = '/tmp/%s_solved.svg' % type(self.puzzle).__name__
-        puzzle_svg_kwargs.setdefault('filename', filename)
-        svg = self.puzzle.create_unsolved_svg(**puzzle_svg_kwargs)
-        print svg.filename
+        try:
+            solver.solve()
+        finally:
+            puzzle_svg_kwargs = dict(self.puzzle_svg_kwargs)
+            filename = '/tmp/%s_solved.svg' % type(self.puzzle).__name__
+            puzzle_svg_kwargs.setdefault('filename', filename)
+            svg = self.puzzle.create_unsolved_svg(**puzzle_svg_kwargs)
+            print svg.filename
 
 
 class BaseTestPuzzleCells(BaseTestPuzzle):
