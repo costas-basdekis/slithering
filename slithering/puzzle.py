@@ -35,7 +35,8 @@ class Cell(object):
 
     @solved_is_internal.setter
     def solved_is_internal(self, value):
-        assert value == self.is_internal, "Solved wrong value for %s" % self
+        assert value == self.is_internal, \
+            "Solved wrong value for %s: should be %s" % (self, self.is_internal)
         self._solved = True
 
     def add_sides(self, *sides):
@@ -243,7 +244,8 @@ class Side(object):
 
     @solved_is_closed.setter
     def solved_is_closed(self, value):
-        assert value == self.is_closed, "Solved wrong value for %s" % self
+        assert value == self.is_closed, \
+            "Solved wrong value for %s: should be %s" % (self, self.is_closed)
         self._solved = True
 
     def add_cells(self, *cells):
@@ -337,7 +339,8 @@ class Corner(object):
 
     @solved_is_active.setter
     def solved_is_active(self, value):
-        assert value == self.is_active, "Solved wrong value for %s" % self
+        assert value == self.is_active, \
+            "Solved wrong value for %s: should be %s" % (self, self.is_active)
         self._solved = True
 
     def add_sides(self, *sides):
