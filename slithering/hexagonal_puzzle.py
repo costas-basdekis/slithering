@@ -35,7 +35,7 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
                         ])
                     assert len(cell.sides) == 6, len(cell.sides)
 
-        return set(cells.itervalues())
+        return puzzle.Cells(cells.itervalues())
 
     def _create_corners(self):
         positions_by_key = {}
@@ -98,11 +98,11 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
         return sides
 
     def get_random_starting_cell_for_puzzle(self):
-        return self.cells_by_key[(self.width / 2, self.height / 2)]
+        return self.cells[(self.width / 2, self.height / 2)]
 
     def row(self, y):
         return [
-            self.cells_by_key[(x, y)]
+            self.cells[(x, y)]
             for x in xrange(self.height)
         ]
 
@@ -113,7 +113,7 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
     def print_all_possible_hints(self):
         for index, row in enumerate(self.rows):
             print ' ' * (index % 2) + ' '.join(
-                str(len(cell.closed_sides) or ' ')
+                str(len(cell.sides.closed) or ' ')
                 for cell in row
             )
 

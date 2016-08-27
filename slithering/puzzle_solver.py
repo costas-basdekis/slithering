@@ -195,7 +195,7 @@ class CellSolvedEdgeSideRestriction(CellRestriction):
         if not cell.is_on_edge:
             return False
 
-        solved_on_edge_sides = cell.solved_sides & cell.on_edge_sides
+        solved_on_edge_sides = cell.sides.solved & cell.sides.on_edge
         if not any(solved_on_edge_sides):
             return False
 
@@ -239,8 +239,8 @@ class CellSolvedSideRestriction(CellRestriction):
 
         solved_sides_with_solved_cell = {
             side
-            for side in cell.solved_sides
-            if any(side.solved_cells)
+            for side in cell.sides.solved
+            if any(side.cells.solved)
         }
         if not any(solved_sides_with_solved_cell):
             return False
@@ -279,7 +279,7 @@ class CellSolvedSideRestriction(CellRestriction):
 class CornerSingleUnsolvedSide(CornerRestriction):
     @classmethod
     def is_suitable(cls, puzzle, corner):
-        if len(corner.unsolved_sides) != 1:
+        if len(corner.sides.unsolved) != 1:
             return False
 
         return True
@@ -289,13 +289,13 @@ class CornerSingleUnsolvedSide(CornerRestriction):
         new_restrictions = set()
         self.finished = True
 
-        if not self.corner.unsolved_sides:
+        if not self.corner.sides.unsolved:
             return changed, new_restrictions
 
-        unsolved_side, = self.corner.unsolved_sides
+        unsolved_side, = self.corner.sides.unsolved
 
         closed_solved_sides = \
-            self.corner.closed_sides & self.corner.solved_sides
+            self.corner.sides.closed & self.corner.sides.solved
         if len(closed_solved_sides) > 1:
             return changed, new_restrictions
 
@@ -313,10 +313,7 @@ class CornerSingleUnsolvedSide(CornerRestriction):
 class CornerTwoSolvedSides(CornerRestriction):
     @classmethod
     def is_suitable(cls, puzzle, corner):
-        if not corner.unsolved_sides:
-            return False
-
-        if len(corner.solved_closed_sides) != 2:
+        if len(corner.sides.solved.closed) != 2:
             return False
 
         return True
@@ -326,7 +323,7 @@ class CornerTwoSolvedSides(CornerRestriction):
         new_restrictions = set()
         self.finished = True
 
-        for side in self.corner.unsolved_sides:
+        for side in self.corner.sides.unsolved:
             changed = True
             side.solved_is_closed = False
 

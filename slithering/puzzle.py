@@ -4,10 +4,22 @@ import random
 from slithering import puzzle_svg
 
 
+class KeyedSet(set):
+    @property
+    def by_key(self):
+        return {
+            item.key: item
+            for item in self
+        }
+
+    def __getitem__(self, key):
+        return self.by_key[key]
+
+
 class Cell(object):
     def __init__(self, key):
         self.key = key
-        self.sides = set()
+        self.sides = Sides()
         self.is_internal = False
 
         self._solved = False
@@ -46,55 +58,19 @@ class Cell(object):
 
     @property
     def neighbours(self):
-        return {
-            cell
-            for side in self.sides
-            for cell in side.cells
-            if cell != self
-        }
-
-    @property
-    def closed_sides(self):
-        return {
-            side
-            for side in self.sides
-            if side.is_closed
-        }
-
-    @property
-    def ordered_sides(self):
-        remaining = set(self.sides)
-        ordered = []
-        side = remaining.pop()
-        ordered.append(side)
-        while remaining:
-            head = ordered[-1]
-            remaining_sides = head.neighbours & remaining
-            if not remaining_sides:
-                ordered.reverse()
-                head = ordered[-1]
-                remaining_sides = head.neighbours & remaining
-            side = remaining_sides.pop()
-            remaining.remove(side)
-            ordered.append(side)
-
-        return ordered
+        return self.sides.cells - {self}
 
     @property
     def hint(self):
-        return len(self.closed_sides)
+        return len(self.sides.closed)
 
     @property
     def corners(self):
-        return {
-            corner
-            for side in self.sides
-            for corner in side.corners
-        }
+        return self.sides.corners
 
     @property
     def ordered_corners(self):
-        ordered_sides = self.ordered_sides
+        ordered_sides = self.sides.ordered
         next_ordered_sides = ordered_sides[1:] + ordered_sides[:1]
 
         return [
@@ -107,48 +83,12 @@ class Cell(object):
 
     @property
     def adjacent_cells(self):
-        return {
-            cell
-            for corner in self.corners
-            for side in corner.sides
-            for cell in side.cells
-            if cell != self
-        }
-
-    @property
-    def are_internal_adjacent_cells_connected(self):
-        adjacent_cells = self.adjacent_cells
-        internal_adjacent_cells = [
-            cell
-            for cell in adjacent_cells
-            if cell.is_internal
-        ]
-        return Cell.are_cells_connected(internal_adjacent_cells)
-
-    @property
-    def adjacent_cell_count(self):
-        return len(self.adjacent_cells)
-
-    @property
-    def internal_adjacent_cells(self):
-        return {
-            cell
-            for cell in self.adjacent_cells
-            if cell.is_internal
-        }
-
-    @property
-    def internal_adjacent_cells_count(self):
-        return len(self.internal_adjacent_cells)
-
-    @property
-    def internal_adjacent_cells_ratio(self):
-        return 1. * self.internal_adjacent_cells_count / self.adjacent_cell_count
+        return self.corners.cells - {self}
 
     @classmethod
-    def group_cells_by_internal_adjacent_cells_ratio(self, cells):
+    def group_cells_by_internal_adjacent_cells_ratio(cls, cells):
         cells_and_ratios = [
-            (cell, cell.internal_adjacent_cells_ratio)
+            (cell, cell.adjacent_cells.internal_ratio)
             for cell in cells
         ]
 
@@ -180,43 +120,100 @@ class Cell(object):
 
         return connected
 
-    @classmethod
-    def are_cells_connected(cls, cells):
-        cells = set(cells)
-        a_cell = set(cells).pop()
-        connected_cells = a_cell.get_connected_cells_in(cells)
-
-        return connected_cells == cells
-
     @property
     def is_on_edge(self):
-        return any(side.is_on_edge for side in self.sides)
+        return any(self.sides.on_edge)
+
+
+class Cells(KeyedSet):
+    def set(self, is_internal):
+        for cell in self:
+            cell.is_internal = is_internal
+
+        return self
 
     @property
-    def on_edge_sides(self):
-        return {
+    def internal(self):
+        return Cells((
+            cell
+            for cell in self
+            if cell.is_internal
+        ))
+
+    @property
+    def external(self):
+        return self - self.internal
+
+    @property
+    def internal_ratio(self):
+        return 1. * len(self.internal) / len(self)
+
+    @property
+    def border(self):
+        neighbours = Cells((
+            neighbour
+            for cell in self.internal
+            for neighbour in cell.neighbours
+        ))
+        return neighbours - self.internal
+
+    @property
+    def non_splitting(self):
+        return Cells((
+            cell
+            for cell in self
+            if cell.adjacent_cells.internal.are_connected()
+        ))
+
+    def are_connected(self):
+        a_cell = set(self).pop()
+        connected_cells = a_cell.get_connected_cells_in(self)
+
+        return connected_cells == self
+
+    @property
+    def on_edge(self):
+        return Cells((
+            cell
+            for cell in self
+            if cell.is_on_edge
+        ))
+
+    def solve(self, is_internal):
+        for cell in self:
+            cell.solved_is_internal = is_internal
+
+        return self
+
+    @property
+    def solved(self):
+        return Cells((
+            cell
+            for cell in self
+            if cell.solved
+        ))
+
+    @property
+    def unsolved(self):
+        return self - self.solved
+
+    @property
+    def sides(self):
+        return Sides((
             side
-            for side in self.sides
-            if side.is_on_edge
-        }
+            for cell in self
+            for side in cell.sides
+        ))
 
     @property
-    def solved_sides(self):
-        return {
-            side
-            for side in self.sides
-            if side.solved
-        }
-
-    @property
-    def unsolved_sides(self):
-        return self.sides - self.solved_sides
+    def corners(self):
+        return self.sides.corners
 
 
 class Side(object):
     def __init__(self):
-        self.cells = set()
-        self.corners = set()
+        self.cells = Cells()
+        self.corners = Corners()
 
         self._solved = False
 
@@ -260,20 +257,7 @@ class Side(object):
 
     @property
     def neighbours(self):
-        return {
-            side
-            for corner in self.corners
-            for side in corner.sides
-            if side != self
-        }
-
-    @property
-    def closed_neighbours(self):
-        return {
-            side
-            for side in self.neighbours
-            if side.is_closed
-        }
+        return self.corners.sides - {self}
 
     @property
     def closed_neighbours_recursive(self):
@@ -282,7 +266,7 @@ class Side(object):
 
         while connected_sides_stack:
             side = connected_sides_stack.pop()
-            new_sides = side.closed_neighbours - connected_sides
+            new_sides = side.neighbours.closed - connected_sides
             connected_sides_stack.extend(new_sides)
             connected_sides |= new_sides
 
@@ -290,32 +274,96 @@ class Side(object):
 
     @property
     def is_closed(self):
-        unique_memberships = set(cell.is_internal for cell in self.cells)
         if len(self.cells) == 1:
-            return unique_memberships == {True}
-        return unique_memberships == {True, False}
+            cell, = self.cells
+            return cell.is_internal
+        cell_1, cell_2 = self.cells
+        return cell_1.is_internal != cell_2.is_internal
 
     @property
     def is_on_edge(self):
         return len(self.cells) == 1
 
+
+class Sides(KeyedSet):
     @property
-    def solved_cells(self):
-        return {
-            cell
-            for cell in self.cells
-            if cell.solved
-        }
+    def closed(self):
+        return Sides((
+            side
+            for side in self
+            if side.is_closed
+        ))
 
     @property
-    def unsolved_cells(self):
-        return self.cells - self.solved_cells
+    def open(self):
+        return self - self.closed
+
+    @property
+    def on_edge(self):
+        return Sides((
+            side
+            for side in self
+            if side.is_on_edge
+        ))
+
+    @property
+    def ordered(self):
+        remaining = Sides(self)
+        ordered = []
+        side = remaining.pop()
+        ordered.append(side)
+        while remaining:
+            head = ordered[-1]
+            remaining_sides = head.neighbours & remaining
+            if not remaining_sides:
+                ordered.reverse()
+                head = ordered[-1]
+                remaining_sides = head.neighbours & remaining
+            side = remaining_sides.pop()
+            remaining.remove(side)
+            ordered.append(side)
+
+        return ordered
+
+    def solve(self, is_closed):
+        for side in self:
+            side.solved_is_closed = is_closed
+
+        return self
+
+    @property
+    def solved(self):
+        return Sides((
+            side
+            for side in self
+            if side.solved
+        ))
+
+    @property
+    def unsolved(self):
+        return self - self.solved
+
+    @property
+    def cells(self):
+        return Cells((
+            cell
+            for side in self
+            for cell in side.cells
+        ))
+
+    @property
+    def corners(self):
+        return Corners((
+            corner
+            for side in self
+            for corner in side.corners
+        ))
 
 
 class Corner(object):
     def __init__(self, key):
         self.key = key
-        self.sides = set()
+        self.sides = Sides()
 
         self._solved = False
 
@@ -354,44 +402,39 @@ class Corner(object):
 
     @property
     def neighbours(self):
-        return {
+        return self.sides.corners - {self}
+
+
+class Corners(KeyedSet):
+    def solve(self, is_active):
+        for corner in self:
+            corner.solved_is_active = is_active
+
+        return self
+
+    @property
+    def solved(self):
+        return Corners((
             corner
-            for side in self.sides
-            for corner in side.corners
-            if corner != self
-        }
+            for corner in self
+            if corner.solved
+        ))
 
     @property
-    def closed_sides(self):
-        return {
+    def unsolved(self):
+        return self - self.solved
+
+    @property
+    def cells(self):
+        return self.sides.cells
+
+    @property
+    def sides(self):
+        return Sides((
             side
-            for side in self.sides
-            if side.is_closed
-        }
-
-    @property
-    def open_sides(self):
-        return self.sides - self.closed_sides
-
-    @property
-    def solved_sides(self):
-        return {
-            side
-            for side in self.sides
-            if side.solved
-        }
-
-    @property
-    def unsolved_sides(self):
-        return self.sides - self.solved_sides
-
-    @property
-    def solved_closed_sides(self):
-        return self.solved_sides & self.closed_sides
-
-    @property
-    def solved_open_sides(self):
-        return self.solved_sides & self.open_sides
+            for corner in self
+            for side in corner.sides
+        ))
 
 
 class Puzzle(object):
@@ -406,10 +449,6 @@ class Puzzle(object):
         self.random = random.Random(self.seed)
 
         self.cells = self.create_cells()
-        self.cells_by_key = {
-            cell.key: cell
-            for cell in self.cells
-        }
 
     def get_random_seed(self):
         return random.randint(0, sys.maxint)
@@ -418,8 +457,7 @@ class Puzzle(object):
         raise NotImplementedError()
 
     def clear_puzzle(self):
-        for cell in self.cells:
-            cell.is_internal = False
+        self.cells.set(False)
 
     def create_puzzle_from_key_sequence(self, key_sequence):
         cells_sequence = self.get_cells_from_keys(key_sequence)
@@ -429,7 +467,7 @@ class Puzzle(object):
 
     def get_cells_from_keys(self, keys):
         return [
-            self.cells_by_key[key]
+            self.cells[key]
             for key in keys
         ]
 
@@ -452,17 +490,17 @@ class Puzzle(object):
         cell.is_internal = True
 
     def get_permissible_puzzle_cells(self):
-        if not self.internal_cells:
+        if not self.cells.internal:
             return self.cells
 
-        return self.non_splitting_border_cells
+        return self.cells.border.non_splitting
 
     def create_random_puzzle_cells_sequence(self):
         target_internal_cells_count = \
             len(self.cells) * self.target_internal_cells_percentage
 
         yield self.get_random_starting_cell_for_puzzle()
-        while len(self.internal_cells) < target_internal_cells_count:
+        while len(self.cells.internal) < target_internal_cells_count:
             yield self.get_random_cell_for_puzzle()
 
     def get_random_cell_for_puzzle(self):
@@ -496,64 +534,16 @@ class Puzzle(object):
         return self.random.choice(sorted(permissible_cells))
 
     @property
-    def internal_cells(self):
-        return {
-            cell
-            for cell in self.cells
-            if cell.is_internal
-        }
-
-    @property
-    def external_cells(self):
-        return self.cells - self.internal_cells
-
-    @property
-    def border_cells(self):
-        neighbours = {
-            neighbour
-            for cell in self.internal_cells
-            for neighbour in cell.neighbours
-        }
-        return neighbours - self.internal_cells
-
-    @property
-    def non_splitting_border_cells(self):
-        return {
-            cell
-            for cell in self.border_cells
-            if cell.are_internal_adjacent_cells_connected
-        }
-
-    @property
     def sides(self):
-        return {
-            side
-            for cell in self.cells
-            for side in cell.sides
-        }
-
-    @property
-    def closed_sides(self):
-        return {
-            side
-            for side in self.sides
-            if side.is_closed
-        }
+        return self.cells.sides
 
     @property
     def corners(self):
-        return {
-            corner
-            for side in self.sides
-            for corner in side.corners
-        }
+        return self.cells.corners
 
     @property
     def solved(self):
-        return all(
-            side.solved
-            for side in self.sides
-        )
+        return not self.sides.unsolved
 
     @classmethod
     def register_svg_generator_class(cls, svg_generator_class):

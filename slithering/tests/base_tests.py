@@ -64,12 +64,7 @@ class BaseTestBoardCells(BaseTestBoard):
         self.assertFalse(cells_that_are_not_part_of_some_of_their_sides)
 
     def test_some_cells_are_on_edge(self):
-        some_cells_are_on_edge = any(
-            cell.is_on_edge
-            for cell in self.puzzle.cells
-        )
-
-        self.assertTrue(some_cells_are_on_edge)
+        self.assertTrue(self.puzzle.cells.on_edge)
 
 
 class BaseTestBoardCellsNeighbours(BaseTestBoardCells):
@@ -96,7 +91,7 @@ class BaseTestBoardCellsNeighbours(BaseTestBoardCells):
         cells_with_more_neighbours_than_sides = {
             cell
             for cell in self.puzzle.cells
-            if len(set(cell.neighbours)) > len(set(cell.sides))
+            if len(cell.neighbours) > len(cell.sides)
         }
         self.assertFalse(cells_with_more_neighbours_than_sides)
 
@@ -156,15 +151,15 @@ class BaseTestBoardCellsSides(BaseTestBoardCells):
         cells_with_different_count_sides_than_corners = {
             cell
             for cell in self.puzzle.cells
-            if len(set(cell.sides)) != len(set(cell.corners))
-        }
+            if len(cell.sides) != len(cell.corners)
+            }
         self.assertFalse(cells_with_different_count_sides_than_corners)
 
     def test_all_cells_can_order_sides(self):
         cells_that_cannot_order_sides = {
             cell
             for cell in self.puzzle.cells
-            if not cell.ordered_sides
+            if not cell.sides.ordered
         }
         self.assertFalse(cells_that_cannot_order_sides)
 
@@ -172,15 +167,15 @@ class BaseTestBoardCellsSides(BaseTestBoardCells):
         cells_with_different_ordered_sides_than_sides = {
             cell
             for cell in self.puzzle.cells
-            if set(cell.ordered_sides) != set(cell.sides)
-        }
+            if set(cell.sides.ordered) != cell.sides
+            }
         self.assertFalse(cells_with_different_ordered_sides_than_sides)
 
     def test_all_cells_ordered_sides_share_a_side_in_order(self):
         cells_with_sides_that_dont_share_a_side_in_order = {
             cell
             for cell, ordered_sides in (
-                (cell, cell.ordered_sides)
+                (cell, cell.sides.ordered)
                 for cell in self.puzzle.cells
             )
             if any(
@@ -196,7 +191,7 @@ class BaseTestBoardCellsSides(BaseTestBoardCells):
         cells_with_sides_that_are_not_neighbours_in_order = {
             cell
             for cell, ordered_sides in (
-                (cell, cell.ordered_sides)
+                (cell, cell.sides.ordered)
                 for cell in self.puzzle.cells
             )
             if any(
@@ -431,14 +426,14 @@ class BaseTestPuzzleCreation(BaseTestPuzzle):
         return self.puzzle_class(**self.puzzle_kwargs)
 
     def test_all_closed_sides_are_connected(self):
-        closed_sides = self.puzzle.closed_sides
+        closed_sides = self.puzzle.sides.closed
         a_side = sorted(closed_sides).pop()
         connected_sides = a_side.closed_neighbours_recursive
         unconnected_sides = closed_sides - connected_sides
         self.assertFalse(unconnected_sides)
 
     def test_all_internal_cells_are_connected(self):
-        internal_cells = self.puzzle.internal_cells
+        internal_cells = self.puzzle.cells.internal
         an_internal_cell = set(internal_cells).pop()
         connected_internal_cells = \
             an_internal_cell.get_connected_cells_in(internal_cells)
@@ -469,18 +464,18 @@ class BaseTestPuzzleSVG(BaseTestPuzzle):
 
 class BaseTestPuzzleCells(BaseTestPuzzle):
     def test_there_are_closed_sides(self):
-        self.assertTrue(self.puzzle.closed_sides)
+        self.assertTrue(self.puzzle.sides.closed)
 
     def test_some_cells_have_closed_sides(self):
         cells_with_closed_sides = {
             cell
             for cell in self.puzzle.cells
-            if cell.closed_sides
+            if cell.sides.closed
         }
         self.assertTrue(cells_with_closed_sides)
 
     def test_there_are_internal_cells(self):
-        self.assertTrue(self.puzzle.internal_cells)
+        self.assertTrue(self.puzzle.cells.internal)
 
 
 class BaseAllPuzzleTests(
@@ -507,7 +502,7 @@ class BaseTestBadKeySequencePuzzleCreation(BaseTestPuzzleCreation):
         puzzle = self.create_puzzle()
         with self.assertRaises(AssertionError):
             for key in self.key_sequence:
-                cell = puzzle.cells_by_key[key]
+                cell = puzzle.cells[key]
                 self.assertIn(cell, puzzle.get_permissible_puzzle_cells())
                 puzzle.add_internal_cell(cell)
 
