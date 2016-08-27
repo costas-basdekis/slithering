@@ -41,21 +41,29 @@ class PuzzleSolver(object):
 
     def find_new_puzzle_restrictions(self):
         return self.create_suitable_puzzle_restrictions(
-            [self.puzzle], self.puzzle_restriction_classes)
+            self.puzzle_restriction_classes)
 
     def find_new_cell_restrictions(self):
-        return self.create_suitable_puzzle_restrictions(
+        return self.create_suitable_puzzle_item_restrictions(
             self.puzzle.cells, self.cell_restriction_classes)
 
     def find_new_side_restrictions(self):
-        return self.create_suitable_puzzle_restrictions(
+        return self.create_suitable_puzzle_item_restrictions(
             self.puzzle.sides, self.side_restriction_classes)
 
     def find_new_corner_restrictions(self):
-        return self.create_suitable_puzzle_restrictions(
+        return self.create_suitable_puzzle_item_restrictions(
             self.puzzle.corners, self.corner_restriction_classes)
 
-    def create_suitable_puzzle_restrictions(self, items, restriction_classes):
+    def create_suitable_puzzle_restrictions(self, restriction_classes):
+        return {
+            restriction_class(self.puzzle)
+            for restriction_class in restriction_classes
+            if restriction_class.is_suitable(self.puzzle)
+        }
+
+    def create_suitable_puzzle_item_restrictions(
+            self, items, restriction_classes):
         return {
             restriction_class(self.puzzle, item)
             for item in items
