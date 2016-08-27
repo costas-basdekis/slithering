@@ -263,8 +263,6 @@ class CellSolvedSideRestriction(CellRestriction):
         if self.cell.solved:
             return changed, new_restrictions
 
-        changed = True
-
         is_internal = any(
             side.is_on_edge and side.solved and side.solved_is_closed
             for side in self.cell.sides
@@ -278,7 +276,12 @@ class CellSolvedSideRestriction(CellRestriction):
             u"Invalid state: a cell should be both internal and external, " \
             u"based on sides"
 
-        self.cell.solved_is_internal = is_internal
+        if is_internal:
+            self.cell.solved_is_internal = True
+            changed = True
+        elif is_external:
+            self.cell.solved_is_internal = False
+            changed = True
 
         return changed, new_restrictions
 
