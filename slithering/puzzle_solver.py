@@ -202,31 +202,22 @@ class WithPuzzleConstraints(PuzzleRestriction):
         return self.puzzle.constraints
 
     def make_constraint(self, constraint, source=None):
-        cases = map(self.make_case, constraint)
-        return Constraint(cases, source=source)
+        return Constraint(constraint, source=source)
 
     def make_case(self, case, source=None):
-        facts = map(self.make_fact, case)
-        return Case(facts, source=source)
+        return Case(case, source=source)
 
     def make_fact(self, fact, source=None):
         return Fact(*fact, source=source)
 
 
 class Constraint(frozenset):
-    def __new__(cls, value, source=None):
-        if isinstance(value, cls):
-            return value
-
-        cases = (Case(case) for case in value)
-        return super(Constraint, cls).__new__(cls, cases)
-
-    def __init__(self, value, source=None):
+    def __init__(self, constraint, source=None):
         if source is None:
-            if isinstance(value, Constraint):
-                source = value.source
+            if isinstance(constraint, Constraint):
+                source = constraint.source
         self.source = source
-        super(Constraint, self).__init__(value)
+        super(Constraint, self).__init__(constraint)
 
     def __str__(self):
         return u'Constraint(%s\n%s\n)' % (
@@ -239,19 +230,12 @@ class Constraint(frozenset):
 
 
 class Case(frozenset):
-    def __new__(cls, value, source=None):
-        if isinstance(value, cls):
-            return value
-
-        facts = (Fact(*fact) for fact in value)
-        return super(Case, cls).__new__(cls, facts)
-
-    def __init__(self, value, source=None):
+    def __init__(self, case, source=None):
         if source is None:
-            if isinstance(value, Case):
-                source = value.source
+            if isinstance(case, Case):
+                source = case.source
         self.source = source
-        super(Case, self).__init__(value)
+        super(Case, self).__init__(case)
 
     def __str__(self):
         return u'Case(%s\n%s\n)' % (
@@ -264,9 +248,6 @@ class Case(frozenset):
 
 
 class Fact(namedtuple('Fact', ['side', 'is_closed'])):
-    def __new__(cls, *values, **kwargs):
-        return super(Fact, cls).__new__(cls, *values)
-
     def __init__(self, *values, **kwargs):
         kwargs.setdefault('source', None)
         self.source, = kwargs.values()
@@ -746,9 +727,9 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
 
     def filter_case_sides(self, case, sides):
         return self.make_case(source=case.source, case=(
-            fact
-            for fact in case
-            if fact.side in sides
+            (side, is_closed)
+            for (side, is_closed) in case
+            if side in sides
         ))
 
     def filter_constraint_sides(self, constraint, sides):
@@ -759,9 +740,9 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
 
     def exclude_case_sides(self, case, sides):
         return self.make_case(source=case.source, case=(
-            fact
-            for fact in case
-            if fact.side not in sides
+            (side, is_closed)
+            for (side, is_closed) in case
+            if side not in sides
         ))
 
     def exclude_constraint_sides(self, constraint, sides):
