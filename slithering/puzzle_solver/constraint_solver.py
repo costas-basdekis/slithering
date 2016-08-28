@@ -104,7 +104,7 @@ class ConstraintSolver(object):
         simplified_constraints = frozenset(
             simplified_constraint
             for constraint in self.constraints
-            for simplified_constraint in self.simplify_constraint(constraint)
+            for simplified_constraint in constraint.simplified()
         )
 
         if simplified_constraints != self.constraints:
@@ -176,79 +176,7 @@ class ConstraintSolver(object):
             case_1
             for case_1 in constraint_1
             if any(
-                self.are_cases_compatible(case_1, case_2)
+                case_1.is_compatible_with(case_2)
                 for case_2 in constraint_2
             )
         ))
-
-    def are_cases_compatible(self, case_1, case_2):
-        sides = case_1.sides & case_2.sides
-        if not sides:
-            return True
-
-        sides_case_1 = self.filter_case_sides(case_1, sides)
-        sides_case_2 = self.filter_case_sides(case_2, sides)
-
-        return sides_case_1 == sides_case_2
-
-    def filter_case_sides(self, case, sides):
-        if case.sides == sides:
-            return case
-
-        return self.make_case(source=case.source, case=(
-            (side, is_closed)
-            for (side, is_closed) in case
-            if side in sides
-        ))
-
-    def filter_constraint_sides(self, constraint, sides):
-        if constraint.sides == sides:
-            return constraint
-
-        return self.make_constraint(source=constraint.source, constraint=(
-            self.filter_case_sides(case, sides)
-            for case in constraint
-        ))
-
-    def exclude_case_sides(self, case, sides):
-        if not sides:
-            return case
-
-        return self.make_case(source=case.source, case=(
-            (side, is_closed)
-            for (side, is_closed) in case
-            if side not in sides
-        ))
-
-    def exclude_constraint_sides(self, constraint, sides):
-        if not sides:
-            return constraint
-
-        return self.make_constraint(source=constraint.source, constraint=(
-            self.exclude_case_sides(case, sides)
-            for case in constraint
-        ))
-
-    def simplify_constraint(self, constraint):
-        if len(constraint) == 1:
-            return [constraint]
-
-        common_sides = constraint.common_facts_sides
-        if not common_sides:
-            return [constraint]
-        if common_sides == constraint.sides:
-            return [constraint]
-
-        simplified_constraint = \
-            self.exclude_constraint_sides(constraint, common_sides)
-        resolved_constraint = \
-            self.filter_constraint_sides(constraint, common_sides)
-
-        simplified_constraints = \
-            filter(None, [simplified_constraint, resolved_constraint])
-
-        assert simplified_constraints, \
-            "Simplifying constraint %s ended up in incompatibility" \
-            % str(constraint)
-
-        return simplified_constraints

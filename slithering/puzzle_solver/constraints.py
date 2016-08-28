@@ -54,6 +54,48 @@ class Constraint(frozenset):
     def calculate_common_facts_sides(self):
         return frozenset(side for side, _ in self.calculate_common_facts())
 
+    def simplified(self):
+        if len(self) == 1:
+            return [self]
+
+        common_sides = self.common_facts_sides
+        if not common_sides:
+            return [self]
+        if common_sides == self.sides:
+            return [self]
+
+        simplified_constraint = \
+            self.excluding_sides(common_sides)
+        resolved_constraint = \
+            self.filtering_sides(common_sides)
+
+        simplified_constraints = \
+            filter(None, [simplified_constraint, resolved_constraint])
+
+        assert simplified_constraints, \
+            "Simplifying constraint %s ended up in incompatibility" \
+            % str(self)
+
+        return simplified_constraints
+
+    def excluding_sides(self, sides):
+        if not sides:
+            return self
+
+        return Constraint((
+            case.excluding_sides(sides)
+            for case in self
+        ), source=self.source)
+
+    def filtering_sides(self, sides):
+        if self.sides == sides:
+            return self
+
+        return Constraint((
+            case.filtering_sides(sides)
+            for case in self
+        ), source=self.source)
+
 
 class Case(frozenset):
     def __init__(self, case, source=None):
@@ -78,6 +120,36 @@ class Case(frozenset):
             side
             for side, _ in self
         )
+
+    def excluding_sides(self, sides):
+        if not sides:
+            return self
+
+        return Case((
+            (side, is_closed)
+            for (side, is_closed) in self
+            if side not in sides
+        ), source=self.source)
+
+    def filtering_sides(self, sides):
+        if self.sides == sides:
+            return self
+
+        return Case((
+            (side, is_closed)
+            for (side, is_closed) in self
+            if side in sides
+        ), source=self.source)
+
+    def is_compatible_with(self, other):
+        sides = self.sides & other.sides
+        if not sides:
+            return True
+
+        self_sides = self.filtering_sides(sides)
+        other_sides = other.filtering_sides(sides)
+
+        return self_sides == other_sides
 
 
 class Fact(namedtuple('Fact', ['side', 'is_closed'])):
