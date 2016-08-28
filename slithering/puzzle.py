@@ -4,7 +4,7 @@ import random
 from slithering import puzzle_svg
 
 
-class KeyedSet(set):
+class KeyedSet(object):
     @property
     def by_key(self):
         return {
@@ -19,7 +19,7 @@ class KeyedSet(set):
 class Cell(object):
     def __init__(self, key):
         self.key = key
-        self.sides = Sides()
+        self.sides = MutableSides()
         self.is_internal = False
 
         self._solved = False
@@ -35,6 +35,9 @@ class Cell(object):
 
     def __lt__(self, other):
         return self.key.__lt__(other.key)
+
+    def freeze(self):
+        self.sides = self.sides.frozen()
 
     @property
     def solved(self):
@@ -125,7 +128,15 @@ class Cell(object):
         return any(self.sides.on_edge)
 
 
-class Cells(KeyedSet):
+class CellsBase(KeyedSet):
+    def frozen(self):
+        return Cells(self)
+
+    def freeze(self):
+        for cell in self:
+            cell.freeze()
+        return self
+
     def set(self, is_internal):
         for cell in self:
             cell.is_internal = is_internal
@@ -210,10 +221,18 @@ class Cells(KeyedSet):
         return self.sides.corners
 
 
+class MutableCells(CellsBase, set):
+    pass
+
+
+class Cells(CellsBase, frozenset):
+    pass
+
+
 class Side(object):
     def __init__(self):
-        self.cells = Cells()
-        self.corners = Corners()
+        self.cells = MutableCells()
+        self.corners = MutableCorners()
 
         self._solved = False
 
@@ -225,6 +244,10 @@ class Side(object):
 
     def __lt__(self, other):
         return self.key.__lt__(other.key)
+
+    def freeze(self):
+        self.cells = self.cells.frozen()
+        self.corners = self.corners.frozen()
 
     @property
     def key(self):
@@ -285,7 +308,16 @@ class Side(object):
         return len(self.cells) == 1
 
 
-class Sides(KeyedSet):
+class SidesBase(KeyedSet):
+    def frozen(self):
+        return Sides(self)
+
+    def freeze(self):
+        for side in self:
+            side.freeze()
+
+        return self
+
     @property
     def closed(self):
         return Sides((
@@ -360,10 +392,18 @@ class Sides(KeyedSet):
         ))
 
 
+class MutableSides(SidesBase, set):
+    pass
+
+
+class Sides(SidesBase, frozenset):
+    pass
+
+
 class Corner(object):
     def __init__(self, key):
         self.key = key
-        self.sides = Sides()
+        self.sides = MutableSides()
 
         self._solved = False
 
@@ -375,6 +415,9 @@ class Corner(object):
 
     def __lt__(self, other):
         return self.key.__lt__(other.key)
+
+    def freeze(self):
+        self.sides = self.sides.frozen()
 
     @property
     def solved(self):
@@ -405,7 +448,16 @@ class Corner(object):
         return self.sides.corners - {self}
 
 
-class Corners(KeyedSet):
+class CornersBase(KeyedSet):
+    def frozen(self):
+        return Corners(self)
+
+    def freeze(self):
+        for corner in self:
+            corner.freeze()
+
+        return self
+
     def solve(self, is_used):
         for corner in self:
             corner.solved_is_used = is_used
@@ -437,6 +489,14 @@ class Corners(KeyedSet):
         ))
 
 
+class MutableCorners(CornersBase, set):
+    pass
+
+
+class Corners(CornersBase, frozenset):
+    pass
+
+
 class Puzzle(object):
     target_internal_cells_percentage = 0.5
     svg_generator_class = puzzle_svg.PuzzleSVG
@@ -449,12 +509,19 @@ class Puzzle(object):
         self.random = random.Random(self.seed)
 
         self.cells = self.create_cells()
+        self.freeze()
 
     def get_random_seed(self):
         return random.randint(0, sys.maxint)
 
     def create_cells(self):
         raise NotImplementedError()
+
+    def freeze(self):
+        self.cells = self.cells.frozen()
+        self.cells.freeze()
+        self.cells.sides.freeze()
+        self.cells.corners.freeze()
 
     def clear_puzzle(self):
         self.cells.set(False)
