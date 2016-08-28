@@ -74,12 +74,12 @@ class PuzzleSolver(object):
     def apply(self):
         changed = False
         new_restrictions = set()
+
         for restriction in self.restrictions:
             restriction_changed, restriction_new_restrictions = \
                 restriction.apply()
-            if restriction_changed:
-                changed = True
-                new_restrictions |= restriction_new_restrictions
+            changed |= restriction_changed
+            new_restrictions |= restriction_new_restrictions
 
         new_restrictions |= self.find_new_restrictions()
 
