@@ -112,7 +112,8 @@ class PuzzleSolver(object):
                 len(self.puzzle.cells.solved), 'cells', \
                 len(self.puzzle.sides.solved), 'sides', \
                 len(self.puzzle.corners.solved), 'corners'
-            continue
+            if self.puzzle.solved:
+                break
 
 
 class Restriction(object):
