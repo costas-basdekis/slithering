@@ -77,6 +77,10 @@ class PuzzleSolver(object):
         for sub_solver in self.sub_solvers:
             changed |= sub_solver.apply()
 
+        new_sub_solvers = self.find_new_sub_solvers() - self.all_sub_solvers
+        self.sub_solvers |= new_sub_solvers
+        self.all_sub_solvers |= new_sub_solvers
+
         self.sub_solvers = frozenset(
             sub_solver
             for sub_solver in self.sub_solvers
