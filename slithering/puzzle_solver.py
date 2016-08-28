@@ -684,6 +684,17 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         return resolved_constraints
 
     def get_constraints_pairs(self):
+        constraints_by_side = self.get_constraints_by_side()
+
+        constraint_pairs = frozenset(
+            pair
+            for constraints in constraints_by_side.itervalues()
+            for pair in itertools.combinations(constraints, 2)
+        )
+
+        return constraint_pairs
+
+    def get_constraints_by_side(self):
         constraints_and_all_sides = tuple(
             (constraint, self.get_sides_of_constraint(constraint))
             for constraint in self.constraints
@@ -699,20 +710,15 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         )
         constraints_by_side = {
             side: frozenset(
-                 constraint
-                 for constraint, constraint_side
-                 in constraints_and_sides
-                 if constraint_side == side
+                constraint
+                for constraint, constraint_side
+                in constraints_and_sides
+                if constraint_side == side
             )
             for side in sides
         }
-        constraint_pairs = frozenset(
-            pair
-            for constraints in constraints_by_side.itervalues()
-            for pair in itertools.combinations(constraints, 2)
-        )
 
-        return constraint_pairs
+        return constraints_by_side
 
     def remove_incompatible_cases_from_constraint(
             self, constraint_1, constraint_2):
