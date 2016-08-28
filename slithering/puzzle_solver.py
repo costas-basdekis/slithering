@@ -192,33 +192,6 @@ class CornerRestriction(PuzzleRestriction):
             .is_suitable(puzzle=puzzle, corner=corner)
 
 
-@PuzzleSolver.register_cell_restriction_class
-class ZeroHintRestriction(CellRestriction):
-    """Cell hint = 0"""
-
-    @classmethod
-    def is_suitable(cls, puzzle, cell):
-        if not cell.hint_is_given:
-            return False
-        if cell.hint != 0:
-            return False
-
-        return True
-
-    def apply(self):
-        changed = False
-        new_restrictions = set()
-
-        for side in self.cell.sides:
-            if not side.solved:
-                changed = True
-                side.solved_is_closed = False
-
-        self.finished = True
-
-        return changed, new_restrictions
-
-
 class WithPuzzleConstraints(PuzzleRestriction):
     @property
     def constraints(self):
