@@ -213,12 +213,13 @@ class WithPuzzleConstraints(PuzzleRestriction):
         return Fact(*fact, source=source)
 
 
-class Constraint(tuple):
+class Constraint(frozenset):
     def __new__(cls, value, source=None):
-        value = tuple(value)
-        cases = map(Case, value)
-        normalised = tuple(sorted(set(cases)))
-        return super(Constraint, cls).__new__(cls, normalised)
+        if isinstance(value, cls):
+            return value
+
+        cases = (Case(case) for case in value)
+        return super(Constraint, cls).__new__(cls, cases)
 
     def __init__(self, value, source=None):
         if source is None:
@@ -237,11 +238,13 @@ class Constraint(tuple):
         )
 
 
-class Case(tuple):
+class Case(frozenset):
     def __new__(cls, value, source=None):
-        facts = [Fact(*fact) for fact in value]
-        normalised = tuple(sorted(set(facts)))
-        return super(Case, cls).__new__(cls, normalised)
+        if isinstance(value, cls):
+            return value
+
+        facts = (Fact(*fact) for fact in value)
+        return super(Case, cls).__new__(cls, facts)
 
     def __init__(self, value, source=None):
         if source is None:
@@ -294,7 +297,7 @@ class CellHintRestriction(WithPuzzleConstraints, CellRestriction):
         return changed, new_restrictions
 
     def constraint(self):
-        sides = sorted(self.cell.sides)
+        sides = self.cell.sides
         combinations = itertools.combinations(sides, self.cell.hint)
 
         constraint = self.make_constraint(source=u'From hint', constraint=(
@@ -487,7 +490,7 @@ class CornerTwoUnsolvedSides(WithPuzzleConstraints, CornerRestriction):
         return changed, new_restrictions
 
     def constraint(self):
-        unsolved_sides = sorted(self.corner.sides.unsolved)
+        unsolved_sides = self.corner.sides.unsolved
         constraint = self.make_constraint(
             source=u'From corner two unsolved sides',
             constraint=(
@@ -621,19 +624,19 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
 
         print 'Updating %s constraints' % len(changed_constraints)
 
-        self.constraints.difference_update(set(changed_constraints.iterkeys()))
-        self.constraints.update(set(changed_constraints.itervalues()))
+        self.constraints.difference_update(changed_constraints.iterkeys())
+        self.constraints.update(changed_constraints.itervalues())
 
         return changed
 
     def simplify_constraints(self):
         changed = False
 
-        simplified_constraints = {
+        simplified_constraints = frozenset(
             simplified_constraint
             for constraint in self.constraints
             for simplified_constraint in self.simplify_constraint(constraint)
-        }
+        )
 
         if simplified_constraints != self.constraints:
             print 'Simplified %s constraints' \
@@ -669,56 +672,56 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         return changed
 
     def get_resolved_constraints(self):
-        resolved_constraints = {
+        resolved_constraints = frozenset(
             constraint
             for constraint in self.constraints
             if len(constraint) == 1
-        }
+        )
         return resolved_constraints
 
     def get_constraints_pairs(self):
-        constraints_and_all_sides = [
+        constraints_and_all_sides = tuple(
             (constraint, self.get_sides_of_constraint(constraint))
             for constraint in self.constraints
-        ]
-        constraints_and_sides = [
+        )
+        constraints_and_sides = tuple(
             (constraint, side)
             for constraint, sides in constraints_and_all_sides
             for side in sides
-        ]
-        sides = {
+        )
+        sides = frozenset(
             side
             for _, side in constraints_and_sides
-        }
+        )
         constraints_by_side = {
-            side: sorted({
+            side: frozenset(
                  constraint
                  for constraint, constraint_side
                  in constraints_and_sides
                  if constraint_side == side
-             })
+            )
             for side in sides
         }
-        constraint_pairs = {
+        constraint_pairs = frozenset(
             pair
             for constraints in constraints_by_side.itervalues()
             for pair in itertools.combinations(constraints, 2)
-        }
+        )
 
         return constraint_pairs
 
     def get_sides_of_constraint(self, constraint):
-        return {
+        return frozenset(
             side
             for case in constraint
             for side in self.get_sides_of_case(case)
-        }
+        )
 
     def get_sides_of_case(self, case):
-        return {
+        return frozenset(
             side
             for side, _ in case
-        }
+        )
 
     def remove_incompatible_cases_from_constraint(
             self, constraint_1, constraint_2):
