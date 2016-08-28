@@ -27,15 +27,15 @@ class PuzzleSolver(object):
     def __init__(self, puzzle):
         self.puzzle = puzzle
         self.sub_solvers = self.find_new_sub_solvers()
-        self.all_sub_solvers = set(self.sub_solvers)
+        self.all_sub_solvers = frozenset(self.sub_solvers)
 
     def find_new_sub_solvers(self):
-        sub_solvers = set()
+        sub_solvers = frozenset()
 
-        sub_solvers.update(self.find_new_puzzle_sub_solvers())
-        sub_solvers.update(self.find_new_cell_sub_solvers())
-        sub_solvers.update(self.find_new_side_sub_solvers())
-        sub_solvers.update(self.find_new_corner_sub_solvers())
+        sub_solvers |= self.find_new_puzzle_sub_solvers()
+        sub_solvers |= self.find_new_cell_sub_solvers()
+        sub_solvers |= self.find_new_side_sub_solvers()
+        sub_solvers |= self.find_new_corner_sub_solvers()
 
         return sub_solvers
 
@@ -56,20 +56,20 @@ class PuzzleSolver(object):
             self.puzzle.corners, self.corner_sub_solver_classes)
 
     def create_suitable_puzzle_sub_solvers(self, sub_solver_classes):
-        return {
+        return frozenset(
             sub_solver_class(self.puzzle)
             for sub_solver_class in sub_solver_classes
             if sub_solver_class.is_suitable(self.puzzle)
-        }
+        )
 
     def create_suitable_puzzle_item_sub_solvers(
             self, items, sub_solver_classes):
-        return {
+        return frozenset(
             sub_solver_class(self.puzzle, item)
             for item in items
             for sub_solver_class in sub_solver_classes
             if sub_solver_class.is_suitable(self.puzzle, item)
-        }
+        )
 
     def apply(self):
         changed = False
@@ -77,11 +77,11 @@ class PuzzleSolver(object):
         for sub_solver in self.sub_solvers:
             changed |= sub_solver.apply()
 
-        self.sub_solvers = {
+        self.sub_solvers = frozenset(
             sub_solver
             for sub_solver in self.sub_solvers
             if not sub_solver.finished
-        }
+        )
 
         return changed
 
