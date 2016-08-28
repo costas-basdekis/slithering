@@ -152,7 +152,7 @@ class ConstraintSolver(object):
         return resolved_constraints
 
     def get_constraints_pairs(self):
-        constraints_by_side = self.get_constraints_by_side()
+        constraints_by_side = self.constraints.by_side
 
         constraint_pairs = frozenset(
             pair
@@ -161,14 +161,6 @@ class ConstraintSolver(object):
         )
 
         return constraint_pairs
-
-    def get_constraints_by_side(self):
-        constraints_by_side = {}
-        for constraint in self.constraints:
-            for side in constraint.sides:
-                constraints_by_side.setdefault(side, set()).add(constraint)
-
-        return constraints_by_side
 
     def remove_incompatible_cases_from_constraint(
             self, constraint_1, constraint_2):

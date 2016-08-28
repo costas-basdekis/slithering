@@ -146,11 +146,10 @@ class CornerConstraints(WithPuzzleConstraints, CornerSubSolver):
         self.finished = True
         changed = False
 
-        constraints = self.constraints
         constraint = self.constraint()
-        if constraint not in constraints:
+        if constraint not in self.constraints:
             changed = True
-            constraints.add(constraint)
+            self.constraints.add(constraint)
 
         return changed
 

@@ -7,7 +7,7 @@ class WithPuzzleConstraints(PuzzleSubSolver):
     @property
     def constraints(self):
         if not hasattr(self.puzzle, 'constraints'):
-            self.puzzle.constraints = set()
+            self.puzzle.constraints = Constraints()
 
         return self.puzzle.constraints
 
@@ -19,6 +19,46 @@ class WithPuzzleConstraints(PuzzleSubSolver):
 
     def make_fact(self, fact, source=None):
         return Fact(*fact, source=source)
+
+
+class Constraints(set):
+    def __init__(self):
+        super(Constraints, self).__init__()
+        self.by_side = {}
+
+    def _update(self, values):
+        for value in values:
+            self._add(value)
+
+    def _add(self, value):
+        for side in value.sides:
+            self.by_side.setdefault(side, set()).add(value)
+
+    def _difference_update(self, values):
+        for value in values:
+            self._remove(value)
+
+    def _remove(self, value):
+        for side in value.sides:
+            self.by_side[side].discard(value)
+
+    def add(self, value):
+        super(Constraints, self).add(value)
+        self._add(value)
+
+    def update(self, values):
+        values = tuple(values)
+        super(Constraints, self).update(values)
+        self._update(values)
+
+    def remove(self, value):
+        super(Constraints, self).remove(value)
+        self._remove(value)
+
+    def difference_update(self, values):
+        values = tuple(values)
+        super(Constraints, self).difference_update(values)
+        self._difference_update(values)
 
 
 class Constraint(frozenset):
