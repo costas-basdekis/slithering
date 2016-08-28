@@ -107,13 +107,16 @@ class ConstraintSolver(object):
             for simplified_constraint in constraint.simplified()
         )
 
-        if simplified_constraints != self.constraints:
+        removed_constraints = self.constraints - simplified_constraints
+        added_constraints = simplified_constraints - self.constraints
+
+        if removed_constraints or added_constraints:
             if self.debug:
-                print 'Simplified %s constraints' \
-                      % len(simplified_constraints - self.constraints)
+                print 'Simplified constraints: removing %s, adding %s' \
+                      % (len(removed_constraints), len(added_constraints))
             changed = True
-            self.constraints.difference_update(self.constraints)
-            self.constraints.update(simplified_constraints)
+            self.constraints.difference_update(removed_constraints)
+            self.constraints.update(added_constraints)
 
         return changed
 
