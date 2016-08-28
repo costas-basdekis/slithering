@@ -99,7 +99,19 @@ class PuzzleSolver(object):
         return changed
 
     def solve(self):
+        print 'Unsolved:', self.puzzle.solved, \
+            len(self.puzzle.cells), 'cells', \
+            len(self.puzzle.sides), 'sides', \
+            len(self.puzzle.corners), 'corners'
+        print 'Solved:', self.puzzle.solved, \
+            len(self.puzzle.cells.solved), 'cells', \
+            len(self.puzzle.sides.solved), 'sides', \
+            len(self.puzzle.corners.solved), 'corners'
         while self.apply():
+            print 'Solved:', self.puzzle.solved, \
+                len(self.puzzle.cells.solved), 'cells', \
+                len(self.puzzle.sides.solved), 'sides', \
+                len(self.puzzle.corners.solved), 'corners'
             continue
 
 
