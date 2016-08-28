@@ -695,28 +695,10 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         return constraint_pairs
 
     def get_constraints_by_side(self):
-        constraints_and_all_sides = tuple(
-            (constraint, self.get_sides_of_constraint(constraint))
-            for constraint in self.constraints
-        )
-        constraints_and_sides = tuple(
-            (constraint, side)
-            for constraint, sides in constraints_and_all_sides
-            for side in sides
-        )
-        sides = frozenset(
-            side
-            for _, side in constraints_and_sides
-        )
-        constraints_by_side = {
-            side: frozenset(
-                constraint
-                for constraint, constraint_side
-                in constraints_and_sides
-                if constraint_side == side
-            )
-            for side in sides
-        }
+        constraints_by_side = {}
+        for constraint in self.constraints:
+            for side in constraint.sides:
+                constraints_by_side.setdefault(side, set()).add(constraint)
 
         return constraints_by_side
 
