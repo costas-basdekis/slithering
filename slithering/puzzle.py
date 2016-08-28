@@ -340,13 +340,13 @@ class SidesBase(KeyedSet):
 
     @property
     def ordered(self):
-        remaining = Sides(self)
+        remaining = MutableSides(self)
         ordered = []
         side = remaining.pop()
         ordered.append(side)
         while remaining:
             head = ordered[-1]
-            remaining_sides = head.neighbours & remaining
+            remaining_sides = MutableSides(head.neighbours & remaining)
             if not remaining_sides:
                 ordered.reverse()
                 head = ordered[-1]
