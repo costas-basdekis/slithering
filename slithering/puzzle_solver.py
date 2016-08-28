@@ -218,6 +218,9 @@ class Constraint(frozenset):
                 source = constraint.source
         self.source = source
         super(Constraint, self).__init__(constraint)
+        self.sides = self.calculate_sides()
+        self.common_facts = self.calculate_common_facts()
+        self.common_facts_sides = self.calculate_common_facts_sides()
 
     def __str__(self):
         return u'Constraint(%s\n%s\n)' % (
@@ -228,6 +231,19 @@ class Constraint(frozenset):
             )
         )
 
+    def calculate_sides(self):
+        return frozenset(
+            side
+            for case in self
+            for side in case
+        )
+
+    def calculate_common_facts(self):
+        return reduce(frozenset.__and__, map(frozenset, self))
+
+    def calculate_common_facts_sides(self):
+        return frozenset(side for side, _ in self.calculate_common_facts())
+
 
 class Case(frozenset):
     def __init__(self, case, source=None):
@@ -236,6 +252,7 @@ class Case(frozenset):
                 source = case.source
         self.source = source
         super(Case, self).__init__(case)
+        self.sides = self.calculate_sides()
 
     def __str__(self):
         return u'Case(%s\n%s\n)' % (
@@ -244,6 +261,12 @@ class Case(frozenset):
                 u'    %s' % line
                 for line in u'\n'.join(map(str, self)).split('\n')
             )
+        )
+
+    def calculate_sides(self):
+        return frozenset(
+            side
+            for side, _ in self
         )
 
 
@@ -691,19 +714,6 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
 
         return constraint_pairs
 
-    def get_sides_of_constraint(self, constraint):
-        return frozenset(
-            side
-            for case in constraint
-            for side in self.get_sides_of_case(case)
-        )
-
-    def get_sides_of_case(self, case):
-        return frozenset(
-            side
-            for side, _ in case
-        )
-
     def remove_incompatible_cases_from_constraint(
             self, constraint_1, constraint_2):
         return self.make_constraint(source=constraint_1.source, constraint=(
@@ -716,7 +726,7 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         ))
 
     def are_cases_compatible(self, case_1, case_2):
-        sides = self.get_sides_of_case(case_1) & self.get_sides_of_case(case_2)
+        sides = case_1.sides & case_2.sides
         if not sides:
             return True
 
@@ -755,8 +765,7 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         if len(constraint) == 1:
             return [constraint]
 
-        common_sides_and_states = reduce(set.__and__, map(set, constraint))
-        common_sides = self.get_sides_of_case(common_sides_and_states)
+        common_sides = constraint.common_facts_sides
 
         simplified_constraint = \
             self.exclude_constraint_sides(constraint, common_sides)
