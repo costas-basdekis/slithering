@@ -673,7 +673,7 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
             constraint
             for constraint in self.constraints
             if len(constraint) == 1
-            }
+        }
         return resolved_constraints
 
     def get_constraints_pairs(self):
