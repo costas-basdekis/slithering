@@ -553,11 +553,16 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         changed = False
         new_restrictions = set()
 
+        print '*' * 80
+        print 'Starting with %s constraints' % len(self.constraints)
+
         self.add_solved_sides_constraint()
         changed |= self.remove_incompatible_cases()
         changed |= self.simplify_constraints()
         changed |= self.apply_resolved_constraints()
         self.remove_resolved_constraints()
+
+        print 'Finishing with %s constraints' % len(self.constraints)
 
         self.finished = not self.constraints
 
@@ -614,6 +619,8 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         }
         changed = bool(changed_constraints)
 
+        print 'Updating %s constraints' % len(changed_constraints)
+
         self.constraints.difference_update(set(changed_constraints.iterkeys()))
         self.constraints.update(set(changed_constraints.itervalues()))
 
@@ -629,6 +636,8 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         }
 
         if simplified_constraints != self.constraints:
+            print 'Simplified %s constraints' \
+                  % len(simplified_constraints - self.constraints)
             changed = True
             self.constraints.difference_update(self.constraints)
             self.constraints.update(simplified_constraints)
@@ -638,6 +647,7 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
     def apply_resolved_constraints(self):
         changed = False
         resolved_constraints = self.get_resolved_constraints()
+        print 'Applying %s resolved constraints' % len(resolved_constraints)
         for constraint in resolved_constraints:
             changed |= self.apply_resolved_constraint(constraint)
 
@@ -645,6 +655,7 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
 
     def remove_resolved_constraints(self):
         resolved_constraints = self.get_resolved_constraints()
+        print 'Removing %s resolved constraints' % len(resolved_constraints)
         self.constraints.difference_update(resolved_constraints)
 
     def apply_resolved_constraint(self, constraint):
