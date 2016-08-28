@@ -736,6 +736,9 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         return sides_case_1 == sides_case_2
 
     def filter_case_sides(self, case, sides):
+        if case.sides == sides:
+            return case
+
         return self.make_case(source=case.source, case=(
             (side, is_closed)
             for (side, is_closed) in case
@@ -743,12 +746,18 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         ))
 
     def filter_constraint_sides(self, constraint, sides):
+        if constraint.sides == sides:
+            return constraint
+
         return self.make_constraint(source=constraint.source, constraint=(
             self.filter_case_sides(case, sides)
             for case in constraint
         ))
 
     def exclude_case_sides(self, case, sides):
+        if not sides:
+            return case
+
         return self.make_case(source=case.source, case=(
             (side, is_closed)
             for (side, is_closed) in case
@@ -756,6 +765,9 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         ))
 
     def exclude_constraint_sides(self, constraint, sides):
+        if not sides:
+            return constraint
+
         return self.make_constraint(source=constraint.source, constraint=(
             self.exclude_case_sides(case, sides)
             for case in constraint
@@ -766,6 +778,10 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
             return [constraint]
 
         common_sides = constraint.common_facts_sides
+        if not common_sides:
+            return [constraint]
+        if common_sides == constraint.sides:
+            return [constraint]
 
         simplified_constraint = \
             self.exclude_constraint_sides(constraint, common_sides)
