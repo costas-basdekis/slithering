@@ -73,28 +73,15 @@ class PuzzleSolver(object):
 
     def apply(self):
         changed = False
-        new_sub_solvers = set()
 
         for sub_solver in self.sub_solvers:
-            sub_solver_changed, sub_solver_new_sub_solvers = \
-                sub_solver.apply()
-            changed |= sub_solver_changed
-            new_sub_solvers |= sub_solver_new_sub_solvers
+            changed |= sub_solver.apply()
 
-        new_sub_solvers |= self.find_new_sub_solvers()
-
-        # Only add sub-solvers that we never encountered before
-        new_sub_solvers -= self.all_sub_solvers
-        self.all_sub_solvers |= new_sub_solvers
-
-        changed |= bool(new_sub_solvers)
-
-        unfinished_sub_solvers = {
+        self.sub_solvers = {
             sub_solver
             for sub_solver in self.sub_solvers
             if not sub_solver.finished
         }
-        self.sub_solvers = unfinished_sub_solvers | new_sub_solvers
 
         return changed
 

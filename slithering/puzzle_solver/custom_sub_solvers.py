@@ -18,7 +18,6 @@ class CellHintSubSolver(WithPuzzleConstraints, CellSubSolver):
     def apply(self):
         self.finished = True
         changed = False
-        new_sub_solvers = set()
 
         constraints = self.constraints
 
@@ -27,7 +26,7 @@ class CellHintSubSolver(WithPuzzleConstraints, CellSubSolver):
             changed = True
             constraints.add(constraint)
 
-        return changed, new_sub_solvers
+        return changed
 
     def constraint(self):
         sides = self.cell.sides
@@ -63,11 +62,10 @@ class CellSolvedEdgeSideSubSolver(CellSubSolver):
 
     def apply(self):
         changed = False
-        new_sub_solvers = set()
         self.finished = True
 
         if self.cell.solved:
-            return changed, new_sub_solvers
+            return changed
 
         changed = True
 
@@ -86,7 +84,7 @@ class CellSolvedEdgeSideSubSolver(CellSubSolver):
 
         self.cell.solved_is_internal = is_internal
 
-        return changed, new_sub_solvers
+        return changed
 
 
 @PuzzleSolver.register_cell_sub_solver_class
@@ -109,11 +107,10 @@ class CellSolvedSideSubSolver(CellSubSolver):
 
     def apply(self):
         changed = False
-        new_sub_solvers = set()
         self.finished = True
 
         if self.cell.solved:
-            return changed, new_sub_solvers
+            return changed
 
         is_internal = any(
             side.is_on_edge and side.solved and side.solved_is_closed
@@ -135,7 +132,7 @@ class CellSolvedSideSubSolver(CellSubSolver):
             self.cell.solved_is_internal = False
             changed = True
 
-        return changed, new_sub_solvers
+        return changed
 
 
 @PuzzleSolver.register_corner_sub_solver_class
@@ -147,7 +144,6 @@ class CornerConstraints(WithPuzzleConstraints, CornerSubSolver):
     def apply(self):
         self.finished = True
         changed = False
-        new_sub_solvers = set()
 
         constraints = self.constraints
         constraint = self.constraint()
@@ -155,7 +151,7 @@ class CornerConstraints(WithPuzzleConstraints, CornerSubSolver):
             changed = True
             constraints.add(constraint)
 
-        return changed, new_sub_solvers
+        return changed
 
     def constraint(self):
         constraint = self.make_constraint(source=u'From corner', constraint=(
@@ -186,7 +182,6 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleSubSolver):
 
     def apply(self):
         changed = False
-        new_sub_solvers = set()
 
         print '*' * 80
         print 'Starting with %s constraints' % len(self.constraints)
@@ -201,7 +196,7 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleSubSolver):
 
         self.finished = not self.constraints
 
-        return changed, new_sub_solvers
+        return changed
 
     def add_solved_sides_constraint(self):
         self.constraints.add(self.make_constraint(
