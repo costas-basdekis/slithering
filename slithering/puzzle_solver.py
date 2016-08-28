@@ -107,7 +107,16 @@ class Restriction(object):
         self.finished = False
 
     def __hash__(self):
+        return hash(tuple(self.hash_key()))
+
+    def hash_key(self):
         raise NotImplementedError()
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+
+        return self.hash_key() == other.hash_key()
 
     @classmethod
     def is_suitable(cls, *args, **kwargs):
@@ -130,8 +139,8 @@ class PuzzleRestriction(Restriction):
         super(PuzzleRestriction, self).__init__()
         self.puzzle = puzzle
 
-    def __hash__(self):
-        return hash((type(self), self.puzzle))
+    def hash_key(self):
+        return tuple((type(self), self.puzzle))
 
     @classmethod
     def is_suitable(cls, puzzle):
@@ -143,8 +152,8 @@ class CellRestriction(PuzzleRestriction):
         super(CellRestriction, self).__init__(puzzle)
         self.cell = cell
 
-    def __hash__(self):
-        return hash((type(self), self.cell.key))
+    def hash_key(self):
+        return tuple((type(self), self.cell.key))
 
     @classmethod
     def is_suitable(cls, puzzle, cell):
@@ -156,8 +165,8 @@ class CornerRestriction(PuzzleRestriction):
         super(CornerRestriction, self).__init__(puzzle)
         self.corner = corner
 
-    def __hash__(self):
-        return hash((type(self), self.corner.key))
+    def hash_key(self):
+        return tuple((type(self), self.corner.key))
 
     @classmethod
     def is_suitable(cls, puzzle, corner):
