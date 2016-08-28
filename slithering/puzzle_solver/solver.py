@@ -1,100 +1,100 @@
 class PuzzleSolver(object):
-    puzzle_restriction_classes = []
-    cell_restriction_classes = []
-    side_restriction_classes = []
-    corner_restriction_classes = []
+    puzzle_sub_solver_classes = []
+    cell_sub_solver_classes = []
+    side_sub_solver_classes = []
+    corner_sub_solver_classes = []
 
     @classmethod
-    def register_puzzle_restriction_class(cls, restriction_class):
-        cls.puzzle_restriction_classes.append(restriction_class)
-        return restriction_class
+    def register_puzzle_sub_solver_class(cls, sub_solver_class):
+        cls.puzzle_sub_solver_classes.append(sub_solver_class)
+        return sub_solver_class
 
     @classmethod
-    def register_cell_restriction_class(cls, restriction_class):
-        cls.cell_restriction_classes.append(restriction_class)
-        return restriction_class
+    def register_cell_sub_solver_class(cls, sub_solver_class):
+        cls.cell_sub_solver_classes.append(sub_solver_class)
+        return sub_solver_class
 
     @classmethod
-    def register_side_restriction_class(cls, restriction_class):
-        cls.side_restriction_classes.append(restriction_class)
-        return restriction_class
+    def register_side_sub_solver_class(cls, sub_solver_class):
+        cls.side_sub_solver_classes.append(sub_solver_class)
+        return sub_solver_class
 
     @classmethod
-    def register_corner_restriction_class(cls, restriction_class):
-        cls.corner_restriction_classes.append(restriction_class)
-        return restriction_class
+    def register_corner_sub_solver_class(cls, sub_solver_class):
+        cls.corner_sub_solver_classes.append(sub_solver_class)
+        return sub_solver_class
 
     def __init__(self, puzzle):
         self.puzzle = puzzle
-        self.restrictions = self.find_new_restrictions()
-        self.all_restrictions = set(self.restrictions)
+        self.sub_solvers = self.find_new_sub_solvers()
+        self.all_sub_solvers = set(self.sub_solvers)
 
-    def find_new_restrictions(self):
-        restrictions = set()
+    def find_new_sub_solvers(self):
+        sub_solvers = set()
 
-        restrictions.update(self.find_new_puzzle_restrictions())
-        restrictions.update(self.find_new_cell_restrictions())
-        restrictions.update(self.find_new_side_restrictions())
-        restrictions.update(self.find_new_corner_restrictions())
+        sub_solvers.update(self.find_new_puzzle_sub_solvers())
+        sub_solvers.update(self.find_new_cell_sub_solvers())
+        sub_solvers.update(self.find_new_side_sub_solvers())
+        sub_solvers.update(self.find_new_corner_sub_solvers())
 
-        return restrictions
+        return sub_solvers
 
-    def find_new_puzzle_restrictions(self):
-        return self.create_suitable_puzzle_restrictions(
-            self.puzzle_restriction_classes)
+    def find_new_puzzle_sub_solvers(self):
+        return self.create_suitable_puzzle_sub_solvers(
+            self.puzzle_sub_solver_classes)
 
-    def find_new_cell_restrictions(self):
-        return self.create_suitable_puzzle_item_restrictions(
-            self.puzzle.cells, self.cell_restriction_classes)
+    def find_new_cell_sub_solvers(self):
+        return self.create_suitable_puzzle_item_sub_solvers(
+            self.puzzle.cells, self.cell_sub_solver_classes)
 
-    def find_new_side_restrictions(self):
-        return self.create_suitable_puzzle_item_restrictions(
-            self.puzzle.sides, self.side_restriction_classes)
+    def find_new_side_sub_solvers(self):
+        return self.create_suitable_puzzle_item_sub_solvers(
+            self.puzzle.sides, self.side_sub_solver_classes)
 
-    def find_new_corner_restrictions(self):
-        return self.create_suitable_puzzle_item_restrictions(
-            self.puzzle.corners, self.corner_restriction_classes)
+    def find_new_corner_sub_solvers(self):
+        return self.create_suitable_puzzle_item_sub_solvers(
+            self.puzzle.corners, self.corner_sub_solver_classes)
 
-    def create_suitable_puzzle_restrictions(self, restriction_classes):
+    def create_suitable_puzzle_sub_solvers(self, sub_solver_classes):
         return {
-            restriction_class(self.puzzle)
-            for restriction_class in restriction_classes
-            if restriction_class.is_suitable(self.puzzle)
+            sub_solver_class(self.puzzle)
+            for sub_solver_class in sub_solver_classes
+            if sub_solver_class.is_suitable(self.puzzle)
         }
 
-    def create_suitable_puzzle_item_restrictions(
-            self, items, restriction_classes):
+    def create_suitable_puzzle_item_sub_solvers(
+            self, items, sub_solver_classes):
         return {
-            restriction_class(self.puzzle, item)
+            sub_solver_class(self.puzzle, item)
             for item in items
-            for restriction_class in restriction_classes
-            if restriction_class.is_suitable(self.puzzle, item)
+            for sub_solver_class in sub_solver_classes
+            if sub_solver_class.is_suitable(self.puzzle, item)
         }
 
     def apply(self):
         changed = False
-        new_restrictions = set()
+        new_sub_solvers = set()
 
-        for restriction in self.restrictions:
-            restriction_changed, restriction_new_restrictions = \
-                restriction.apply()
-            changed |= restriction_changed
-            new_restrictions |= restriction_new_restrictions
+        for sub_solver in self.sub_solvers:
+            sub_solver_changed, sub_solver_new_sub_solvers = \
+                sub_solver.apply()
+            changed |= sub_solver_changed
+            new_sub_solvers |= sub_solver_new_sub_solvers
 
-        new_restrictions |= self.find_new_restrictions()
+        new_sub_solvers |= self.find_new_sub_solvers()
 
-        # Only add restrictions that we never encountered before
-        new_restrictions -= self.all_restrictions
-        self.all_restrictions |= new_restrictions
+        # Only add sub-solvers that we never encountered before
+        new_sub_solvers -= self.all_sub_solvers
+        self.all_sub_solvers |= new_sub_solvers
 
-        changed |= bool(new_restrictions)
+        changed |= bool(new_sub_solvers)
 
-        unfinished_restrictions = {
-            restriction
-            for restriction in self.restrictions
-            if not restriction.finished
+        unfinished_sub_solvers = {
+            sub_solver
+            for sub_solver in self.sub_solvers
+            if not sub_solver.finished
         }
-        self.restrictions = unfinished_restrictions | new_restrictions
+        self.sub_solvers = unfinished_sub_solvers | new_sub_solvers
 
         return changed
 

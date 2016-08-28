@@ -1,13 +1,13 @@
 import itertools
 
 from slithering.puzzle_solver.constraints import WithPuzzleConstraints
-from slithering.puzzle_solver.restrictions import PuzzleRestriction, \
-    CellRestriction, CornerRestriction
+from slithering.puzzle_solver.sub_solvers import PuzzleSubSolver, \
+    CellSubSolver, CornerSubSolver
 from slithering.puzzle_solver.solver import PuzzleSolver
 
 
-@PuzzleSolver.register_cell_restriction_class
-class CellHintRestriction(WithPuzzleConstraints, CellRestriction):
+@PuzzleSolver.register_cell_sub_solver_class
+class CellHintSubSolver(WithPuzzleConstraints, CellSubSolver):
     @classmethod
     def is_suitable(cls, puzzle, cell):
         if not cell.hint_is_given:
@@ -18,7 +18,7 @@ class CellHintRestriction(WithPuzzleConstraints, CellRestriction):
     def apply(self):
         self.finished = True
         changed = False
-        new_restrictions = set()
+        new_sub_solvers = set()
 
         constraints = self.constraints
 
@@ -27,7 +27,7 @@ class CellHintRestriction(WithPuzzleConstraints, CellRestriction):
             changed = True
             constraints.add(constraint)
 
-        return changed, new_restrictions
+        return changed, new_sub_solvers
 
     def constraint(self):
         sides = self.cell.sides
@@ -44,8 +44,8 @@ class CellHintRestriction(WithPuzzleConstraints, CellRestriction):
         return constraint
 
 
-@PuzzleSolver.register_cell_restriction_class
-class CellSolvedEdgeSideRestriction(CellRestriction):
+@PuzzleSolver.register_cell_sub_solver_class
+class CellSolvedEdgeSideSubSolver(CellSubSolver):
     """An edge side of cell is solved"""
     @classmethod
     def is_suitable(cls, puzzle, cell):
@@ -63,11 +63,11 @@ class CellSolvedEdgeSideRestriction(CellRestriction):
 
     def apply(self):
         changed = False
-        new_restrictions = set()
+        new_sub_solvers = set()
         self.finished = True
 
         if self.cell.solved:
-            return changed, new_restrictions
+            return changed, new_sub_solvers
 
         changed = True
 
@@ -86,11 +86,11 @@ class CellSolvedEdgeSideRestriction(CellRestriction):
 
         self.cell.solved_is_internal = is_internal
 
-        return changed, new_restrictions
+        return changed, new_sub_solvers
 
 
-@PuzzleSolver.register_cell_restriction_class
-class CellSolvedSideRestriction(CellRestriction):
+@PuzzleSolver.register_cell_sub_solver_class
+class CellSolvedSideSubSolver(CellSubSolver):
     """An edge side of cell is solved"""
     @classmethod
     def is_suitable(cls, puzzle, cell):
@@ -109,11 +109,11 @@ class CellSolvedSideRestriction(CellRestriction):
 
     def apply(self):
         changed = False
-        new_restrictions = set()
+        new_sub_solvers = set()
         self.finished = True
 
         if self.cell.solved:
-            return changed, new_restrictions
+            return changed, new_sub_solvers
 
         is_internal = any(
             side.is_on_edge and side.solved and side.solved_is_closed
@@ -135,11 +135,11 @@ class CellSolvedSideRestriction(CellRestriction):
             self.cell.solved_is_internal = False
             changed = True
 
-        return changed, new_restrictions
+        return changed, new_sub_solvers
 
 
-@PuzzleSolver.register_corner_restriction_class
-class CornerConstraints(WithPuzzleConstraints, CornerRestriction):
+@PuzzleSolver.register_corner_sub_solver_class
+class CornerConstraints(WithPuzzleConstraints, CornerSubSolver):
     @classmethod
     def is_suitable(cls, puzzle, corner):
         return True
@@ -147,7 +147,7 @@ class CornerConstraints(WithPuzzleConstraints, CornerRestriction):
     def apply(self):
         self.finished = True
         changed = False
-        new_restrictions = set()
+        new_sub_solvers = set()
 
         constraints = self.constraints
         constraint = self.constraint()
@@ -155,7 +155,7 @@ class CornerConstraints(WithPuzzleConstraints, CornerRestriction):
             changed = True
             constraints.add(constraint)
 
-        return changed, new_restrictions
+        return changed, new_sub_solvers
 
     def constraint(self):
         constraint = self.make_constraint(source=u'From corner', constraint=(
@@ -178,15 +178,15 @@ class CornerConstraints(WithPuzzleConstraints, CornerRestriction):
         return constraint
 
 
-@PuzzleSolver.register_puzzle_restriction_class
-class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
+@PuzzleSolver.register_puzzle_sub_solver_class
+class PuzzleConstraints(WithPuzzleConstraints, PuzzleSubSolver):
     @classmethod
     def is_suitable(cls, puzzle):
         return True
 
     def apply(self):
         changed = False
-        new_restrictions = set()
+        new_sub_solvers = set()
 
         print '*' * 80
         print 'Starting with %s constraints' % len(self.constraints)
@@ -201,7 +201,7 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
 
         self.finished = not self.constraints
 
-        return changed, new_restrictions
+        return changed, new_sub_solvers
 
     def add_solved_sides_constraint(self):
         self.constraints.add(self.make_constraint(

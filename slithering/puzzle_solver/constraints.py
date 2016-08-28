@@ -1,9 +1,9 @@
 from collections import namedtuple
 
-from slithering.puzzle_solver.restrictions import PuzzleRestriction
+from slithering.puzzle_solver.sub_solvers import PuzzleSubSolver
 
 
-class WithPuzzleConstraints(PuzzleRestriction):
+class WithPuzzleConstraints(PuzzleSubSolver):
     @property
     def constraints(self):
         if not hasattr(self.puzzle, 'constraints'):
