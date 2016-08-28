@@ -689,7 +689,7 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         constraint_pairs = frozenset(
             pair
             for constraints in constraints_by_side.itervalues()
-            for pair in itertools.combinations(constraints, 2)
+            for pair in itertools.combinations(sorted(constraints), 2)
         )
 
         return constraint_pairs
