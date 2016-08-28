@@ -87,6 +87,8 @@ class PuzzleSolver(object):
         new_restrictions -= self.all_restrictions
         self.all_restrictions |= new_restrictions
 
+        changed |= bool(new_restrictions)
+
         unfinished_restrictions = {
             restriction
             for restriction in self.restrictions
