@@ -1,3 +1,6 @@
+import itertools
+
+
 class PuzzleSolver(object):
     puzzle_restriction_classes = []
     cell_restriction_classes = []
@@ -216,6 +219,60 @@ class ZeroHintRestriction(CellRestriction):
         return changed, new_restrictions
 
 
+class WithPuzzleConstraints(PuzzleRestriction):
+    @property
+    def constraints(self):
+        if not hasattr(self.puzzle, 'constraints'):
+            self.puzzle.constraints = set()
+
+        return self.puzzle.constraints
+
+    def make_constraint(self, constraint):
+        cases = map(self.make_case, constraint)
+        return tuple(sorted(set(cases)))
+
+    def make_case(self, case):
+        return tuple(sorted(set(case)))
+
+
+@PuzzleSolver.register_cell_restriction_class
+class CellHintRestriction(WithPuzzleConstraints, CellRestriction):
+    @classmethod
+    def is_suitable(cls, puzzle, cell):
+        if not cell.hint_is_given:
+            return False
+
+        return True
+
+    def apply(self):
+        self.finished = True
+        changed = False
+        new_restrictions = set()
+
+        constraints = self.constraints
+
+        constraint = self.constraint()
+        if constraint not in constraints:
+            changed = True
+            constraints.add(constraint)
+
+        return changed, new_restrictions
+
+    def constraint(self):
+        sides = sorted(self.cell.sides)
+        combinations = itertools.combinations(sides, self.cell.hint)
+
+        constraint = self.make_constraint(
+            (
+                (side, side in combination)
+                for side in sides
+            )
+            for combination in combinations
+        )
+
+        return constraint
+
+
 @PuzzleSolver.register_cell_restriction_class
 class CellSolvedEdgeSideRestriction(CellRestriction):
     """An edge side of cell is solved"""
@@ -363,3 +420,269 @@ class CornerTwoSolvedSides(CornerRestriction):
             side.solved_is_closed = False
 
         return changed, new_restrictions
+
+
+@PuzzleSolver.register_corner_restriction_class
+class CornerTwoUnsolvedSides(WithPuzzleConstraints, CornerRestriction):
+    @classmethod
+    def is_suitable(cls, puzzle, corner):
+        if corner.sides.solved.closed:
+            return False
+
+        if len(corner.sides.unsolved) != 2:
+            return False
+
+        return True
+
+    def apply(self):
+        self.finished = True
+        changed = False
+        new_restrictions = set()
+
+        constraints = self.constraints
+
+        constraint = self.constraint()
+        if constraint not in constraints:
+            changed = True
+            constraints.add(constraint)
+
+        return changed, new_restrictions
+
+    def constraint(self):
+        unsolved_sides = sorted(self.corner.sides.unsolved)
+        constraint = self.make_constraint((
+            ((side, True) for side in unsolved_sides),
+            ((side, False) for side in unsolved_sides),
+        ))
+
+        return constraint
+
+
+@PuzzleSolver.register_puzzle_restriction_class
+class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
+    @classmethod
+    def is_suitable(cls, puzzle):
+        return True
+
+    def apply(self):
+        changed = False
+        new_restrictions = set()
+
+        self.add_solved_sides_constraint()
+        changed |= self.remove_incompatible_cases()
+        changed |= self.simplify_constraints()
+        changed |= self.apply_resolved_constraints()
+        self.remove_resolved_constraints()
+
+        self.finished = not self.constraints
+
+        return changed, new_restrictions
+
+    def add_solved_sides_constraint(self):
+        self.constraints.add(self.make_constraint((
+            self.make_case((
+                (side, side.is_closed)
+                for side in self.puzzle.sides.solved
+            )),
+        )))
+
+    def remove_incompatible_cases(self):
+        constraint_pairs = self.get_constraints_pairs()
+
+        # Keep a map of the update version of each constraint: we will use this
+        # to reduce the constraint even further
+        current_constraints = {
+            constraint: constraint
+            for constraint in self.constraints
+        }
+
+        for constraint_1, constraint_2 in constraint_pairs:
+            current_constraint_1 = current_constraints[constraint_1]
+            current_constraint_2 = current_constraints[constraint_2]
+
+            # We remove cases from the changed constraint, using the original
+            # constraint, as we want to use as many as possible to trim it down
+            # TODO: Maybe it's not necessary
+            new_constraint_1 = self.remove_incompatible_cases_from_constraint(
+                current_constraint_1, constraint_2)
+            new_constraint_2 = self.remove_incompatible_cases_from_constraint(
+                current_constraint_2, constraint_1)
+
+            assert new_constraint_1, \
+                "Constraint %s was impossible" % str(constraint_1)
+            assert new_constraint_2, \
+                "Constraint %s was impossible" % str(constraint_2)
+
+            current_constraints[constraint_1] = new_constraint_1
+            current_constraints[constraint_2] = new_constraint_2
+
+        changed_constraints = {
+            constraint: current_constraint
+            for constraint, current_constraint
+            in current_constraints.iteritems()
+            if constraint != current_constraint
+        }
+        changed = bool(changed_constraints)
+
+        self.constraints.difference_update(set(changed_constraints.iterkeys()))
+        self.constraints.update(set(changed_constraints.itervalues()))
+
+        return changed
+
+    def simplify_constraints(self):
+        changed = False
+
+        simplified_constraints = {
+            simplified_constraint
+            for constraint in self.constraints
+            for simplified_constraint in self.simplify_constraint(constraint)
+        }
+
+        if simplified_constraints != self.constraints:
+            changed = True
+            self.constraints.difference_update(self.constraints)
+            self.constraints.update(simplified_constraints)
+
+        return changed
+
+    def apply_resolved_constraints(self):
+        changed = False
+        resolved_constraints = self.get_resolved_constraints()
+        for constraint in resolved_constraints:
+            changed |= self.apply_resolved_constraint(constraint)
+
+        return changed
+
+    def remove_resolved_constraints(self):
+        resolved_constraints = self.get_resolved_constraints()
+        self.constraints.difference_update(resolved_constraints)
+
+    def apply_resolved_constraint(self, constraint):
+        changed = False
+        for case in constraint:
+            for side, is_closed in case:
+                if not side.solved:
+                    changed = True
+                    side.solved_is_closed = is_closed
+
+        return changed
+
+    def get_resolved_constraints(self):
+        resolved_constraints = {
+            constraint
+            for constraint in self.constraints
+            if len(constraint) == 1
+            }
+        return resolved_constraints
+
+    def get_constraints_pairs(self):
+        constraints_and_all_sides = [
+            (constraint, self.get_sides_of_constraint(constraint))
+            for constraint in self.constraints
+        ]
+        constraints_and_sides = [
+            (constraint, side)
+            for constraint, sides in constraints_and_all_sides
+            for side in sides
+        ]
+        sides = {
+            side
+            for _, side in constraints_and_sides
+        }
+        constraints_by_side = {
+            side: sorted({
+                 constraint
+                 for constraint, constraint_side
+                 in constraints_and_sides
+                 if constraint_side == side
+             })
+            for side in sides
+        }
+        constraint_pairs = {
+            pair
+            for constraints in constraints_by_side.itervalues()
+            for pair in itertools.combinations(constraints, 2)
+        }
+
+        return constraint_pairs
+
+    def get_sides_of_constraint(self, constraint):
+        return {
+            side
+            for case in constraint
+            for side in self.get_sides_of_case(case)
+        }
+
+    def get_sides_of_case(self, case):
+        return {
+            side
+            for side, _ in case
+        }
+
+    def remove_incompatible_cases_from_constraint(
+            self, constraint_1, constraint_2):
+        return self.make_constraint(
+            case_1
+            for case_1 in constraint_1
+            if any(
+                self.are_cases_compatible(case_1, case_2)
+                for case_2 in constraint_2
+            )
+        )
+
+    def are_cases_compatible(self, case_1, case_2):
+        sides = self.get_sides_of_case(case_1) & self.get_sides_of_case(case_2)
+        if not sides:
+            return True
+
+        sides_case_1 = self.filter_case_sides(case_1, sides)
+        sides_case_2 = self.filter_case_sides(case_2, sides)
+
+        return sides_case_1 == sides_case_2
+
+    def filter_case_sides(self, case, sides):
+        return self.make_case(
+            (side, is_closed)
+            for side, is_closed in case
+            if side in sides
+        )
+
+    def filter_constraint_sides(self, constraint, sides):
+        return self.make_constraint(
+            self.filter_case_sides(case, sides)
+            for case in constraint
+        )
+
+    def exclude_case_sides(self, case, sides):
+        return self.make_case(
+            (side, is_closed)
+            for side, is_closed in case
+            if side not in sides
+        )
+
+    def exclude_constraint_sides(self, constraint, sides):
+        return self.make_constraint(
+            self.exclude_case_sides(case, sides)
+            for case in constraint
+        )
+
+    def simplify_constraint(self, constraint):
+        if len(constraint) == 1:
+            return [constraint]
+
+        common_sides_and_states = reduce(set.__and__, map(set, constraint))
+        common_sides = self.get_sides_of_case(common_sides_and_states)
+
+        simplified_constraint = \
+            self.exclude_constraint_sides(constraint, common_sides)
+        resolved_constraint = \
+            self.filter_constraint_sides(constraint, common_sides)
+
+        simplified_constraints = \
+            filter(None, [simplified_constraint, resolved_constraint])
+
+        assert simplified_constraints, \
+            "Simplifying constraint %s ended up in incompatibility" \
+            % str(constraint)
+
+        return simplified_constraints
