@@ -297,13 +297,13 @@ class CellHintRestriction(WithPuzzleConstraints, CellRestriction):
         sides = sorted(self.cell.sides)
         combinations = itertools.combinations(sides, self.cell.hint)
 
-        constraint = self.make_constraint(
-            (
+        constraint = self.make_constraint(source=u'From hint', constraint=(
+            self.make_case(source=u'Hint possibility', case=(
                 (side, side in combination)
                 for side in sides
-            )
+            ))
             for combination in combinations
-        )
+        ))
 
         return constraint
 
@@ -485,10 +485,17 @@ class CornerTwoUnsolvedSides(WithPuzzleConstraints, CornerRestriction):
 
     def constraint(self):
         unsolved_sides = sorted(self.corner.sides.unsolved)
-        constraint = self.make_constraint((
-            ((side, True) for side in unsolved_sides),
-            ((side, False) for side in unsolved_sides),
-        ))
+        constraint = self.make_constraint(
+            source=u'From corner two unsolved sides',
+            constraint=(
+                self.make_case(source=u'Corner solves to used', case=(
+                    (side, True) for side in unsolved_sides
+                )),
+                self.make_case(source=u'Corner solves to unused', case=(
+                    (side, False) for side in unsolved_sides
+                )),
+            ),
+        )
 
         return constraint
 
@@ -514,12 +521,15 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         return changed, new_restrictions
 
     def add_solved_sides_constraint(self):
-        self.constraints.add(self.make_constraint((
-            self.make_case((
-                (side, side.is_closed)
-                for side in self.puzzle.sides.solved
+        self.constraints.add(self.make_constraint(
+            source=u'Solved sides',
+            constraint=(
+                self.make_case(source=u'Solved sides', case=(
+                    (side, side.is_closed)
+                    for side in self.puzzle.sides.solved
+                )),
             )),
-        )))
+        )
 
     def remove_incompatible_cases(self):
         constraint_pairs = self.get_constraints_pairs()
@@ -656,14 +666,14 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
 
     def remove_incompatible_cases_from_constraint(
             self, constraint_1, constraint_2):
-        return self.make_constraint(
+        return self.make_constraint(source=constraint_1.source, constraint=(
             case_1
             for case_1 in constraint_1
             if any(
                 self.are_cases_compatible(case_1, case_2)
                 for case_2 in constraint_2
             )
-        )
+        ))
 
     def are_cases_compatible(self, case_1, case_2):
         sides = self.get_sides_of_case(case_1) & self.get_sides_of_case(case_2)
@@ -676,30 +686,30 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
         return sides_case_1 == sides_case_2
 
     def filter_case_sides(self, case, sides):
-        return self.make_case(
-            (side, is_closed)
-            for side, is_closed in case
-            if side in sides
-        )
+        return self.make_case(source=case.source, case=(
+            fact
+            for fact in case
+            if fact.side in sides
+        ))
 
     def filter_constraint_sides(self, constraint, sides):
-        return self.make_constraint(
+        return self.make_constraint(source=constraint.source, constraint=(
             self.filter_case_sides(case, sides)
             for case in constraint
-        )
+        ))
 
     def exclude_case_sides(self, case, sides):
-        return self.make_case(
-            (side, is_closed)
-            for side, is_closed in case
-            if side not in sides
-        )
+        return self.make_case(source=case.source, case=(
+            fact
+            for fact in case
+            if fact.side not in sides
+        ))
 
     def exclude_constraint_sides(self, constraint, sides):
-        return self.make_constraint(
+        return self.make_constraint(source=constraint.source, constraint=(
             self.exclude_case_sides(case, sides)
             for case in constraint
-        )
+        ))
 
     def simplify_constraint(self, constraint):
         if len(constraint) == 1:
