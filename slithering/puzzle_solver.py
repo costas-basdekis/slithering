@@ -402,6 +402,7 @@ class CellSolvedSideRestriction(CellRestriction):
         return changed, new_restrictions
 
 
+# TODO: Remove, since it's superseded by CornerConstraints
 @PuzzleSolver.register_corner_restriction_class
 class CornerSingleUnsolvedSide(CornerRestriction):
     @classmethod
@@ -436,6 +437,7 @@ class CornerSingleUnsolvedSide(CornerRestriction):
         return changed, new_restrictions
 
 
+# TODO: Remove, since it's superseded by CornerConstraints
 @PuzzleSolver.register_corner_restriction_class
 class CornerTwoSolvedSides(CornerRestriction):
     @classmethod
@@ -457,6 +459,7 @@ class CornerTwoSolvedSides(CornerRestriction):
         return changed, new_restrictions
 
 
+# TODO: Remove, since it's superseded by CornerConstraints
 @PuzzleSolver.register_corner_restriction_class
 class CornerTwoUnsolvedSides(WithPuzzleConstraints, CornerRestriction):
     @classmethod
@@ -496,6 +499,46 @@ class CornerTwoUnsolvedSides(WithPuzzleConstraints, CornerRestriction):
                 )),
             ),
         )
+
+        return constraint
+
+
+# @PuzzleSolver.register_corner_restriction_class
+class CornerConstraints(WithPuzzleConstraints, CornerRestriction):
+    @classmethod
+    def is_suitable(cls, puzzle, corner):
+        return True
+
+    def apply(self):
+        self.finished = True
+        changed = False
+        new_restrictions = set()
+
+        constraints = self.constraints
+        constraint = self.constraint()
+        if constraint not in constraints:
+            changed = True
+            constraints.add(constraint)
+
+        return changed, new_restrictions
+
+    def constraint(self):
+        constraint = self.make_constraint(source=u'From corner', constraint=(
+            self.make_case(
+                source=u'Corner solves to unused',
+                case=(
+                    (side, False) for side in self.corner.sides
+                ),
+            ),
+        ) + tuple(
+            self.make_case(
+                source=u'Corner uses sides %s' % str(side_pair),
+                case=(
+                    (side, side in side_pair) for side in self.corner.sides
+                ),
+            )
+            for side_pair in itertools.combinations(self.corner.sides, 2)
+        ))
 
         return constraint
 
