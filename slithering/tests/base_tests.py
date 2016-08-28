@@ -417,7 +417,7 @@ class BaseTestPuzzle(unittest.TestCase):
 
     def setUp(self):
         self.puzzle = self.create_puzzle()
-        print 'Seed: #%s' % self.puzzle.seed
+        print 'Seed: #%s, %s' % (self.puzzle.seed, type(self.puzzle).__name__)
         self.puzzle.create_random_puzzle()
 
 
@@ -516,7 +516,7 @@ class BaseTestPuzzleSolver(unittest.TestCase):
 
     def setUp(self):
         self.puzzle = self.puzzle_class(**self.puzzle_kwargs)
-        print 'Seed: #%s' % self.puzzle.seed
+        print 'Seed: #%s, %s' % (self.puzzle.seed, type(self.puzzle).__name__)
         self.puzzle.create_random_puzzle()
         self.solver = self.solver_class(self.puzzle)
         self.solver.solve()
