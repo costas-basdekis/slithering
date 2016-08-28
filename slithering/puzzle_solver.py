@@ -671,7 +671,7 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
             for side, is_closed in case:
                 if not side.solved:
                     changed = True
-                    side.solved_is_closed = is_closed
+                side.solved_is_closed = is_closed
 
         return changed
 
