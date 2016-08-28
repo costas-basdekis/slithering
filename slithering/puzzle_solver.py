@@ -554,9 +554,11 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleRestriction):
                 current_constraint_2, constraint_1)
 
             assert new_constraint_1, \
-                "Constraint %s was impossible" % str(constraint_1)
+                "Constraint %s with %s was impossible" \
+                % (str(constraint_1), str(constraint_2))
             assert new_constraint_2, \
-                "Constraint %s was impossible" % str(constraint_2)
+                "Constraint %s with %s was impossible" \
+                % (str(constraint_2), str(constraint_1))
 
             current_constraints[constraint_1] = new_constraint_1
             current_constraints[constraint_2] = new_constraint_2
