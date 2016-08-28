@@ -1,4 +1,5 @@
 import itertools
+from collections import namedtuple
 
 
 class PuzzleSolver(object):
@@ -200,12 +201,73 @@ class WithPuzzleConstraints(PuzzleRestriction):
 
         return self.puzzle.constraints
 
-    def make_constraint(self, constraint):
+    def make_constraint(self, constraint, source=None):
         cases = map(self.make_case, constraint)
-        return tuple(sorted(set(cases)))
+        return Constraint(cases, source=source)
 
-    def make_case(self, case):
-        return tuple(sorted(set(case)))
+    def make_case(self, case, source=None):
+        facts = map(self.make_fact, case)
+        return Case(facts, source=source)
+
+    def make_fact(self, fact, source=None):
+        return Fact(*fact, source=source)
+
+
+class Constraint(tuple):
+    def __new__(cls, value, source=None):
+        value = tuple(value)
+        cases = map(Case, value)
+        normalised = tuple(sorted(set(cases)))
+        return super(Constraint, cls).__new__(cls, normalised)
+
+    def __init__(self, value, source=None):
+        if source is None:
+            if isinstance(value, Constraint):
+                source = value.source
+        self.source = source
+        super(Constraint, self).__init__(value)
+
+    def __str__(self):
+        return u'Constraint(%s\n%s\n)' % (
+            u'source=%s' % self.source if self.source else '',
+            u'\n'.join(
+                u'    %s' % line
+                for line in u'\n'.join(map(str, self)).split('\n')
+            )
+        )
+
+
+class Case(tuple):
+    def __new__(cls, value, source=None):
+        facts = [Fact(*fact) for fact in value]
+        normalised = tuple(sorted(set(facts)))
+        return super(Case, cls).__new__(cls, normalised)
+
+    def __init__(self, value, source=None):
+        if source is None:
+            if isinstance(value, Case):
+                source = value.source
+        self.source = source
+        super(Case, self).__init__(value)
+
+    def __str__(self):
+        return u'Case(%s\n%s\n)' % (
+            u'source=%s' % self.source if self.source else '',
+            u'\n'.join(
+                u'    %s' % line
+                for line in u'\n'.join(map(str, self)).split('\n')
+            )
+        )
+
+
+class Fact(namedtuple('Fact', ['side', 'is_closed'])):
+    def __new__(cls, *values, **kwargs):
+        return super(Fact, cls).__new__(cls, *values)
+
+    def __init__(self, *values, **kwargs):
+        kwargs.setdefault('source', None)
+        self.source, = kwargs.values()
+        super(Fact, self).__init__(*values)
 
 
 @PuzzleSolver.register_cell_restriction_class
