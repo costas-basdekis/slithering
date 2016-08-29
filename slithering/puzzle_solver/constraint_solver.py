@@ -35,7 +35,8 @@ class ConstraintSolver(object):
         self.remove_resolved_constraints()
 
         if self.debug:
-            print 'Finishing with %s constraints' % len(self.constraints)
+            print 'Finishing with %s constraints, changed: %s' \
+                  % (len(self.constraints), changed)
 
         return changed
 
