@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 from slithering.puzzle_solver.sub_solvers import PuzzleSubSolver
+from slithering.utils import cached_property
 
 
 class WithPuzzleConstraints(PuzzleSubSolver):
@@ -68,9 +69,6 @@ class Constraint(frozenset):
                 source = constraint.source
         self.source = source
         super(Constraint, self).__init__(constraint)
-        self._sides = None
-        self._common_facts = None
-        self._common_facts_sides = None
 
     def __str__(self):
         return u'Constraint(%s\n%s\n)' % (
@@ -81,39 +79,21 @@ class Constraint(frozenset):
             )
         )
 
-    @property
+    @cached_property
     def sides(self):
-        if self._sides is None:
-            self._sides = self.calculate_sides()
-
-        return self._sides
-
-    def calculate_sides(self):
         return frozenset(
             side
             for case in self
             for side in case
         )
 
-    @property
+    @cached_property
     def common_facts(self):
-        if self._common_facts is None:
-            self._common_facts = self.calculate_common_facts()
-
-        return self._common_facts
-
-    def calculate_common_facts(self):
         return reduce(frozenset.__and__, map(frozenset, self))
 
-    @property
+    @cached_property
     def common_facts_sides(self):
-        if self._common_facts_sides is None:
-            self._common_facts_sides = self.calculate_common_facts_sides()
-
-        return self._common_facts_sides
-
-    def calculate_common_facts_sides(self):
-        return frozenset(side for side, _ in self.calculate_common_facts())
+        return frozenset(side for side, _ in self.common_facts)
 
     def simplified(self):
         if len(self) == 1:
@@ -175,7 +155,6 @@ class Case(frozenset):
                 source = case.source
         self.source = source
         super(Case, self).__init__(case)
-        self._sides = None
 
     def __str__(self):
         return u'Case(%s\n%s\n)' % (
@@ -186,14 +165,8 @@ class Case(frozenset):
             )
         )
 
-    @property
+    @cached_property
     def sides(self):
-        if self._sides is None:
-            self._sides = self.calculate_sides()
-
-        return self._sides
-
-    def calculate_sides(self):
         return frozenset(
             side
             for side, _ in self
