@@ -190,6 +190,10 @@ class CellsBase(KeyedSet):
             if cell.is_on_edge
         ))
 
+    @property
+    def not_on_edge(self):
+        return self - self.on_edge
+
     def solve(self, is_internal):
         for cell in self:
             cell.solved_is_internal = is_internal
@@ -337,6 +341,10 @@ class SidesBase(KeyedSet):
             for side in self
             if side.is_on_edge
         ))
+
+    @property
+    def not_on_edge(self):
+        return self - self.on_edge
 
     @property
     def ordered(self):
