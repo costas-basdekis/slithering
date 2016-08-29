@@ -119,12 +119,15 @@ class Constraint(frozenset):
 
         return simplified_constraints
 
-    def being_compatible_with(self, other):
+    def being_compatible_with(self, *others):
         return Constraint(
             (
                 case_1
                 for case_1 in self
-                if case_1.is_compatible_with_constraint(other)
+                if all(
+                    case_1.is_compatible_with_constraint(other)
+                    for other in others
+                )
             ),
             source=self.source,
         )
