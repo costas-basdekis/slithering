@@ -17,11 +17,11 @@ class cached_property(property):
 class cached_property_on_freeze(cached_property):
     def __get__(self, instance, owner):
         key = self.fget.func_name
-        if key in self.__dict__:
-            return self.__dict__[key]
+        if instance and key in instance.__dict__:
+            return instance.__dict__[key]
 
         if not instance or not instance._frozen:
-            return self.__get__(instance, owner)
+            return self._get(instance, owner)
 
         instance.__dict__[key] = self._get(instance, owner)
 
