@@ -15,6 +15,18 @@ class KeyedSet(object):
     def __getitem__(self, key):
         return self.by_key[key]
 
+    def from_keys(self, keys):
+        by_key = self.by_key
+        from_keys = (
+            by_key[key]
+            for key in keys
+        )
+
+        if type(from_keys) != type(keys):
+            from_keys = type(keys)(from_keys)
+
+        return from_keys
+
 
 class Cell(object):
     def __init__(self, key):
@@ -535,16 +547,10 @@ class Puzzle(object):
         self.cells.set(False)
 
     def create_puzzle_from_key_sequence(self, key_sequence):
-        cells_sequence = self.get_cells_from_keys(key_sequence)
+        cells_sequence = self.cells.from_keys(key_sequence)
         self.create_random_puzzle_from_cells_sequence(cells_sequence)
 
         return self
-
-    def get_cells_from_keys(self, keys):
-        return [
-            self.cells[key]
-            for key in keys
-        ]
 
     def create_random_puzzle(self):
         cells_sequence = self.create_random_puzzle_cells_sequence()
