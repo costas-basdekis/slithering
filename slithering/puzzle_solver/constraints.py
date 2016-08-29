@@ -28,12 +28,24 @@ class Constraints(set):
         self.by_side = {}
 
     def _update(self, values):
-        for value in values:
+        return (
             self._add(value)
+            for value in values
+        )
 
     def _add(self, value):
+        others = frozenset(
+            other
+            for side in value.sides
+            if side in self.by_side
+            for other in self.by_side[side]
+        )
+        if others:
+            value = value.being_compatible_with(*others)
         for side in value.sides:
             self.by_side.setdefault(side, set()).add(value)
+
+        return value
 
     def _difference_update(self, values):
         for value in values:
@@ -44,13 +56,12 @@ class Constraints(set):
             self.by_side[side].discard(value)
 
     def add(self, value):
+        value = self._add(value)
         super(Constraints, self).add(value)
-        self._add(value)
 
     def update(self, values):
-        values = tuple(values)
+        values = self._update(values)
         super(Constraints, self).update(values)
-        self._update(values)
 
     def remove(self, value):
         super(Constraints, self).remove(value)
