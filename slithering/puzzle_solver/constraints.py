@@ -42,6 +42,16 @@ class Constraints(set):
         )
         if others:
             value = value.being_compatible_with(*others)
+            compatible_others = frozenset(
+                other.being_compatible_with(value)
+                for other in others
+            )
+            removed_others = others - compatible_others
+            new_others = compatible_others - others
+            if removed_others:
+                self.difference_update(removed_others)
+            if new_others:
+                self.update(new_others)
         for side in value.sides:
             self.by_side.setdefault(side, set()).add(value)
 
