@@ -192,13 +192,20 @@ class Case(frozenset):
             if side in sides
         ), source=self.source)
 
+    def sides_dict(self, sides):
+        return {
+            side: is_closed
+            for side, is_closed in self
+            if side in sides
+        }
+
     def is_compatible_with(self, other):
         sides = self.sides & other.sides
         if not sides:
             return True
 
-        self_sides = self.filtering_sides(sides)
-        other_sides = other.filtering_sides(sides)
+        self_sides = self.sides_dict(sides)
+        other_sides = other.sides_dict(sides)
 
         return self_sides == other_sides
 
