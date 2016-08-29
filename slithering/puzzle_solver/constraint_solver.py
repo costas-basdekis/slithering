@@ -53,16 +53,13 @@ class ConstraintSolver(object):
     def remove_incompatible_cases(self):
         constraint_pairs = self.get_constraints_pairs()
 
-        # Keep a map of the update version of each constraint: we will use this
-        # to reduce the constraint even further
-        current_constraints = {
-            constraint: constraint
-            for constraint in self.constraints
-        }
+        changed_constraints = {}
 
         for constraint_1, constraint_2 in constraint_pairs:
-            current_constraint_1 = current_constraints[constraint_1]
-            current_constraint_2 = current_constraints[constraint_2]
+            current_constraint_1 = \
+                changed_constraints.get(constraint_1, constraint_1)
+            current_constraint_2 = \
+                changed_constraints.get(constraint_2, constraint_2)
 
             # We remove cases from the changed constraint, using the original
             # constraint, as we want to use as many as possible to trim it down
@@ -79,15 +76,11 @@ class ConstraintSolver(object):
                 "Constraint %s with %s was impossible" \
                 % (str(constraint_2), str(constraint_1))
 
-            current_constraints[constraint_1] = new_constraint_1
-            current_constraints[constraint_2] = new_constraint_2
+            if new_constraint_1 != constraint_1:
+                changed_constraints[constraint_1] = new_constraint_1
+            if new_constraint_2 != constraint_2:
+                changed_constraints[constraint_2] = new_constraint_2
 
-        changed_constraints = {
-            constraint: current_constraint
-            for constraint, current_constraint
-            in current_constraints.iteritems()
-            if constraint != current_constraint
-        }
         changed = bool(changed_constraints)
 
         if self.debug:
