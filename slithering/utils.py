@@ -21,8 +21,7 @@ class cached_property_on_freeze(cached_property):
             return self.__dict__[key]
 
         if not instance or not instance._frozen:
-            return super(cached_property_on_freeze, self)\
-                .__get__(instance, owner)
+            return self.__get__(instance, owner)
 
         instance.__dict__[key] = self._get(instance, owner)
 
