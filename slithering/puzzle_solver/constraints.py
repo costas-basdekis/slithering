@@ -84,7 +84,7 @@ class Constraint(frozenset):
         return frozenset(
             side
             for case in self
-            for side in case
+            for side in case.sides
         )
 
     @cached_property
