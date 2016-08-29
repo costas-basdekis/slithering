@@ -38,7 +38,7 @@ class Constraints(set):
         if others:
             value = value.being_compatible_with(*others)
             self._reduce_existing(others, value)
-        self._add_to_sides(value)
+        map(self._add_to_sides, value.simplified())
 
         return value
 
@@ -57,8 +57,9 @@ class Constraints(set):
 
     def _reduce_existing(self, others, value):
         compatible_others = frozenset(
-            other.being_compatible_with(value)
+            simplified
             for other in others
+            for simplified in other.being_compatible_with(value).simplified()
         )
         removed_others = others - compatible_others
         new_others = compatible_others - others

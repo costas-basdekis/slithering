@@ -29,7 +29,6 @@ class ConstraintSolver(object):
             print 'Starting with %s constraints' % len(self.constraints)
 
         self.add_solved_sides_constraint()
-        changed |= self.simplify_constraints()
         changed |= self.apply_resolved_constraints()
         self.remove_resolved_constraints()
 
@@ -49,28 +48,6 @@ class ConstraintSolver(object):
                 )),
             )),
         )
-
-    def simplify_constraints(self):
-        changed = False
-
-        simplified_constraints = frozenset(
-            simplified_constraint
-            for constraint in self.constraints
-            for simplified_constraint in constraint.simplified()
-        )
-
-        removed_constraints = self.constraints - simplified_constraints
-        added_constraints = simplified_constraints - self.constraints
-
-        if removed_constraints or added_constraints:
-            if self.debug:
-                print 'Simplified constraints: removing %s, adding %s' \
-                      % (len(removed_constraints), len(added_constraints))
-            changed = True
-            self.constraints.difference_update(removed_constraints)
-            self.constraints.update(added_constraints)
-
-        return changed
 
     def apply_resolved_constraints(self):
         changed = False
