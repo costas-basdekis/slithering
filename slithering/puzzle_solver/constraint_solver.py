@@ -29,7 +29,6 @@ class ConstraintSolver(object):
             print 'Starting with %s constraints' % len(self.constraints)
 
         self.add_solved_sides_constraint()
-        changed |= self.remove_incompatible_cases()
         changed |= self.simplify_constraints()
         changed |= self.apply_resolved_constraints()
         self.remove_resolved_constraints()
@@ -50,47 +49,6 @@ class ConstraintSolver(object):
                 )),
             )),
         )
-
-    def remove_incompatible_cases(self):
-        constraint_pairs = self.get_constraints_pairs()
-
-        changed_constraints = {}
-
-        for constraint_1, constraint_2 in constraint_pairs:
-            current_constraint_1 = \
-                changed_constraints.get(constraint_1, constraint_1)
-            current_constraint_2 = \
-                changed_constraints.get(constraint_2, constraint_2)
-
-            # We remove cases from the changed constraint, using the original
-            # constraint, as we want to use as many as possible to trim it down
-            # TODO: Maybe it's not necessary
-            new_constraint_1 = \
-                current_constraint_1.being_compatible_with(constraint_2)
-            new_constraint_2 = \
-                current_constraint_2.being_compatible_with(constraint_1)
-
-            assert new_constraint_1, \
-                "Constraint %s with %s was impossible" \
-                % (str(constraint_1), str(constraint_2))
-            assert new_constraint_2, \
-                "Constraint %s with %s was impossible" \
-                % (str(constraint_2), str(constraint_1))
-
-            if new_constraint_1 != constraint_1:
-                changed_constraints[constraint_1] = new_constraint_1
-            if new_constraint_2 != constraint_2:
-                changed_constraints[constraint_2] = new_constraint_2
-
-        changed = bool(changed_constraints)
-
-        if self.debug:
-            print 'Updating %s constraints' % len(changed_constraints)
-
-        self.constraints.difference_update(changed_constraints.iterkeys())
-        self.constraints.update(changed_constraints.itervalues())
-
-        return changed
 
     def simplify_constraints(self):
         changed = False
