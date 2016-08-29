@@ -34,28 +34,38 @@ class Constraints(set):
         )
 
     def _add(self, value):
-        others = frozenset(
-            other
-            for side in value.sides
-            if side in self.by_side
-            for other in self.by_side[side]
-        )
+        others = self.sharing_sides_with(value)
         if others:
             value = value.being_compatible_with(*others)
-            compatible_others = frozenset(
-                other.being_compatible_with(value)
-                for other in others
-            )
-            removed_others = others - compatible_others
-            new_others = compatible_others - others
-            if removed_others:
-                self.difference_update(removed_others)
-            if new_others:
-                self.update(new_others)
+            self._reduce_existing(others, value)
+        self._add_to_sides(value)
+
+        return value
+
+    def _add_to_sides(self, value):
         for side in value.sides:
             self.by_side.setdefault(side, set()).add(value)
 
-        return value
+    def sharing_sides_with(self, constraint):
+        others = frozenset(
+            other
+            for side in constraint.sides
+            if side in self.by_side
+            for other in self.by_side[side]
+        )
+        return others
+
+    def _reduce_existing(self, others, value):
+        compatible_others = frozenset(
+            other.being_compatible_with(value)
+            for other in others
+        )
+        removed_others = others - compatible_others
+        new_others = compatible_others - others
+        if removed_others:
+            self.difference_update(removed_others)
+        if new_others:
+            self.update(new_others)
 
     def _difference_update(self, values):
         for value in values:
