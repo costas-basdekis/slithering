@@ -7,6 +7,7 @@ class ConstraintSolver(object):
     def __init__(self, puzzle, debug=False):
         self.puzzle = puzzle
         self.debug = debug
+        self._comparison_cache = {}
 
     @property
     def constraints(self):
@@ -161,8 +162,15 @@ class ConstraintSolver(object):
 
     def remove_incompatible_cases_from_constraint(
             self, constraint_1, constraint_2):
-        return self.make_constraint(source=constraint_1.source, constraint=(
-            case_1
-            for case_1 in constraint_1
-            if case_1.is_compatible_with_constraint(constraint_2)
-        ))
+        key = (constraint_1, constraint_2)
+        if key not in self._comparison_cache:
+            self._comparison_cache[key] = self.make_constraint(
+                source=constraint_1.source,
+                constraint=(
+                    case_1
+                    for case_1 in constraint_1
+                    if case_1.is_compatible_with_constraint(constraint_2)
+                ),
+            )
+
+        return self._comparison_cache[key]
