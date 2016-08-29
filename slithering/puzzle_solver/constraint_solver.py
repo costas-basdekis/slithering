@@ -28,8 +28,8 @@ class ConstraintSolver(object):
             print '*' * 80
             print 'Starting with %s constraints' % len(self.constraints)
 
-        self.add_solved_sides_constraint()
-        changed |= self.apply_resolved_constraints()
+        solved_sides_constraint = self.add_solved_sides_constraint()
+        changed |= self.apply_resolved_constraints(solved_sides_constraint)
         self.remove_resolved_constraints()
 
         if self.debug:
@@ -39,19 +39,22 @@ class ConstraintSolver(object):
         return changed
 
     def add_solved_sides_constraint(self):
-        self.constraints.add(self.make_constraint(
+        constraint = self.make_constraint(
             source=u'Solved sides',
             constraint=(
                 self.make_case(source=u'Solved sides', case=(
                     (side, side.is_closed)
                     for side in self.puzzle.sides.solved
                 )),
-            )),
+            )
         )
+        self.constraints.add(constraint)
+        return constraint
 
-    def apply_resolved_constraints(self):
+    def apply_resolved_constraints(self, *ignoring):
         changed = False
         resolved_constraints = self.get_resolved_constraints()
+        resolved_constraints -= frozenset(ignoring)
         if self.debug:
             print 'Applying %s resolved constraints' % len(resolved_constraints)
         for constraint in resolved_constraints:
