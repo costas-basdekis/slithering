@@ -2,13 +2,12 @@ import sys
 import random
 
 from slithering import puzzle_svg
-from slithering.utils import cached_property_on_freeze
 
 
 class KeyedSet(object):
     _frozen = False
 
-    @cached_property_on_freeze
+    @property
     def by_key(self):
         return {
             item.key: item
@@ -77,19 +76,19 @@ class Cell(object):
         self.sides.update(new_sides)
         [side.add_cells(self) for side in new_sides]
 
-    @cached_property_on_freeze
+    @property
     def neighbours(self):
         return self.sides.cells - {self}
 
-    @cached_property_on_freeze
+    @property
     def hint(self):
         return len(self.sides.closed)
 
-    @cached_property_on_freeze
+    @property
     def corners(self):
         return self.sides.corners
 
-    @cached_property_on_freeze
+    @property
     def ordered_corners(self):
         ordered_sides = self.sides.ordered
         next_ordered_sides = ordered_sides[1:] + ordered_sides[:1]
@@ -102,7 +101,7 @@ class Cell(object):
             )
         ]
 
-    @cached_property_on_freeze
+    @property
     def adjacent_cells(self):
         return self.corners.cells - {self}
 
@@ -141,7 +140,7 @@ class Cell(object):
 
         return connected
 
-    @cached_property_on_freeze
+    @property
     def is_on_edge(self):
         return any(self.sides.on_edge)
 
@@ -161,7 +160,7 @@ class CellsBase(KeyedSet):
 
         return self
 
-    @cached_property_on_freeze
+    @property
     def internal(self):
         return Cells((
             cell
@@ -169,15 +168,15 @@ class CellsBase(KeyedSet):
             if cell.is_internal
         ))
 
-    @cached_property_on_freeze
+    @property
     def external(self):
         return self - self.internal
 
-    @cached_property_on_freeze
+    @property
     def internal_ratio(self):
         return 1. * len(self.internal) / len(self)
 
-    @cached_property_on_freeze
+    @property
     def border(self):
         neighbours = Cells((
             neighbour
@@ -186,7 +185,7 @@ class CellsBase(KeyedSet):
         ))
         return neighbours - self.internal
 
-    @cached_property_on_freeze
+    @property
     def non_splitting(self):
         return Cells((
             cell
@@ -194,14 +193,14 @@ class CellsBase(KeyedSet):
             if cell.adjacent_cells.internal.are_connected
         ))
 
-    @cached_property_on_freeze
+    @property
     def are_connected(self):
         a_cell = set(self).pop()
         connected_cells = a_cell.get_connected_cells_in(self)
 
         return connected_cells == self
 
-    @cached_property_on_freeze
+    @property
     def on_edge(self):
         return Cells((
             cell
@@ -209,7 +208,7 @@ class CellsBase(KeyedSet):
             if cell.is_on_edge
         ))
 
-    @cached_property_on_freeze
+    @property
     def not_on_edge(self):
         return self - self.on_edge
 
@@ -219,7 +218,7 @@ class CellsBase(KeyedSet):
 
         return self
 
-    @cached_property_on_freeze
+    @property
     def solved(self):
         return Cells((
             cell
@@ -227,11 +226,11 @@ class CellsBase(KeyedSet):
             if cell.solved
         ))
 
-    @cached_property_on_freeze
+    @property
     def unsolved(self):
         return self - self.solved
 
-    @cached_property_on_freeze
+    @property
     def sides(self):
         return Sides((
             side
@@ -239,7 +238,7 @@ class CellsBase(KeyedSet):
             for side in cell.sides
         ))
 
-    @cached_property_on_freeze
+    @property
     def corners(self):
         return self.sides.corners
 
@@ -274,7 +273,7 @@ class Side(object):
         self.corners = self.corners.frozen()
         self._frozen = True
 
-    @cached_property_on_freeze
+    @property
     def key(self):
         return tuple(corner.key for corner in self.corners)
 
@@ -303,11 +302,11 @@ class Side(object):
         self.corners.update(new_corners)
         [corner.add_sides(self) for corner in new_corners]
 
-    @cached_property_on_freeze
+    @property
     def neighbours(self):
         return self.corners.sides - {self}
 
-    @cached_property_on_freeze
+    @property
     def closed_neighbours_recursive(self):
         connected_sides = {self}
         connected_sides_stack = [self]
@@ -320,7 +319,7 @@ class Side(object):
 
         return connected_sides
 
-    @cached_property_on_freeze
+    @property
     def is_closed(self):
         if len(self.cells) == 1:
             cell, = self.cells
@@ -328,7 +327,7 @@ class Side(object):
         cell_1, cell_2 = self.cells
         return cell_1.is_internal != cell_2.is_internal
 
-    @cached_property_on_freeze
+    @property
     def is_on_edge(self):
         return len(self.cells) == 1
 
@@ -343,7 +342,7 @@ class SidesBase(KeyedSet):
 
         return self
 
-    @cached_property_on_freeze
+    @property
     def closed(self):
         return Sides((
             side
@@ -351,11 +350,11 @@ class SidesBase(KeyedSet):
             if side.is_closed
         ))
 
-    @cached_property_on_freeze
+    @property
     def open(self):
         return self - self.closed
 
-    @cached_property_on_freeze
+    @property
     def on_edge(self):
         return Sides((
             side
@@ -363,11 +362,11 @@ class SidesBase(KeyedSet):
             if side.is_on_edge
         ))
 
-    @cached_property_on_freeze
+    @property
     def not_on_edge(self):
         return self - self.on_edge
 
-    @cached_property_on_freeze
+    @property
     def ordered(self):
         remaining = MutableSides(self)
         ordered = []
@@ -392,7 +391,7 @@ class SidesBase(KeyedSet):
 
         return self
 
-    @cached_property_on_freeze
+    @property
     def solved(self):
         return Sides((
             side
@@ -400,11 +399,11 @@ class SidesBase(KeyedSet):
             if side.solved
         ))
 
-    @cached_property_on_freeze
+    @property
     def unsolved(self):
         return self - self.solved
 
-    @cached_property_on_freeze
+    @property
     def cells(self):
         return Cells((
             cell
@@ -412,7 +411,7 @@ class SidesBase(KeyedSet):
             for cell in side.cells
         ))
 
-    @cached_property_on_freeze
+    @property
     def corners(self):
         return Corners((
             corner
@@ -470,11 +469,11 @@ class Corner(object):
         self.sides.update(new_sides)
         [side.add_corners(self) for side in new_sides]
 
-    @cached_property_on_freeze
+    @property
     def is_used(self):
         return bool(self.sides.closed)
 
-    @cached_property_on_freeze
+    @property
     def neighbours(self):
         return self.sides.corners - {self}
 
@@ -495,7 +494,7 @@ class CornersBase(KeyedSet):
 
         return self
 
-    @cached_property_on_freeze
+    @property
     def solved(self):
         return Corners((
             corner
@@ -503,15 +502,15 @@ class CornersBase(KeyedSet):
             if corner.solved
         ))
 
-    @cached_property_on_freeze
+    @property
     def unsolved(self):
         return self - self.solved
 
-    @cached_property_on_freeze
+    @property
     def cells(self):
         return self.sides.cells
 
-    @cached_property_on_freeze
+    @property
     def sides(self):
         return Sides((
             side
@@ -628,15 +627,15 @@ class Puzzle(object):
         permissible_cells = self.get_permissible_puzzle_cells()
         return self.random.choice(sorted(permissible_cells))
 
-    @cached_property_on_freeze
+    @property
     def sides(self):
         return self.cells.sides
 
-    @cached_property_on_freeze
+    @property
     def corners(self):
         return self.cells.corners
 
-    @cached_property_on_freeze
+    @property
     def solved(self):
         return not self.sides.unsolved
 
