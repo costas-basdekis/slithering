@@ -90,7 +90,7 @@ class CellSolvedEdgeSideSubSolver(CellSubSolver):
 
 @PuzzleSolver.register_cell_sub_solver_class
 class CellSolvedSideSubSolver(CellSubSolver):
-    """An edge side of cell is solved"""
+    """An non-edge side of cell is solved"""
     @classmethod
     def is_suitable(cls, puzzle, cell):
         if cell.solved:
@@ -113,25 +113,27 @@ class CellSolvedSideSubSolver(CellSubSolver):
         if self.cell.solved:
             return changed
 
-        is_internal = any(
-            side.is_on_edge and side.solved and side.solved_is_closed
-            for side in self.cell.sides
-        )
-        is_external = any(
-            side.is_on_edge and side.solved and not side.solved_is_closed
-            for side in self.cell.sides
-        )
+        solved_sides_with_solved_cell = {
+            side
+            for side in self.cell.sides.solved
+            if any(side.cells.solved)
+        }
+        is_internal = False
+        is_external = False
+        for side in solved_sides_with_solved_cell:
+            other_cell, = side.cells.solved - {self.cell}
+            if side.is_closed == other_cell.is_internal:
+                is_external = True
+            else:
+                is_internal = True
 
-        assert not (is_internal and is_external), \
-            u"Invalid state: a cell should be both internal and external, " \
+        assert is_internal != is_external, \
+            u"Invalid state: a cell must be either internal and external, " \
             u"based on sides"
 
-        if is_internal:
-            self.cell.solved_is_internal = True
-            changed = True
-        elif is_external:
-            self.cell.solved_is_internal = False
-            changed = True
+        self.cell.solved_is_internal = is_internal
+
+        changed = True
 
         return changed
 
