@@ -7,7 +7,6 @@ class ConstraintSolver(object):
     def __init__(self, puzzle, debug=False):
         self.puzzle = puzzle
         self.debug = debug
-        self._comparison_cache = {}
 
     @property
     def constraints(self):
@@ -66,10 +65,10 @@ class ConstraintSolver(object):
             # We remove cases from the changed constraint, using the original
             # constraint, as we want to use as many as possible to trim it down
             # TODO: Maybe it's not necessary
-            new_constraint_1 = self.remove_incompatible_cases_from_constraint(
-                current_constraint_1, constraint_2)
-            new_constraint_2 = self.remove_incompatible_cases_from_constraint(
-                current_constraint_2, constraint_1)
+            new_constraint_1 = \
+                current_constraint_1.being_compatible_with(constraint_2)
+            new_constraint_2 = \
+                current_constraint_2.being_compatible_with(constraint_1)
 
             assert new_constraint_1, \
                 "Constraint %s with %s was impossible" \
@@ -159,18 +158,3 @@ class ConstraintSolver(object):
         )
 
         return constraint_pairs
-
-    def remove_incompatible_cases_from_constraint(
-            self, constraint_1, constraint_2):
-        key = (constraint_1, constraint_2)
-        if key not in self._comparison_cache:
-            self._comparison_cache[key] = self.make_constraint(
-                source=constraint_1.source,
-                constraint=(
-                    case_1
-                    for case_1 in constraint_1
-                    if case_1.is_compatible_with_constraint(constraint_2)
-                ),
-            )
-
-        return self._comparison_cache[key]

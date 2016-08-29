@@ -139,6 +139,16 @@ class Constraint(frozenset):
 
         return simplified_constraints
 
+    def being_compatible_with(self, other):
+        return Constraint(
+            (
+                case_1
+                for case_1 in self
+                if case_1.is_compatible_with_constraint(other)
+            ),
+            source=self.source,
+        )
+
     def excluding_sides(self, sides):
         if not sides:
             return self
