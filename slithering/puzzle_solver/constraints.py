@@ -219,6 +219,12 @@ class Case(frozenset):
 
         return self_sides == other_sides
 
+    def is_compatible_with_constraint(self, constraint):
+        return any(
+            self.is_compatible_with(case)
+            for case in constraint
+        )
+
 
 class Fact(namedtuple('Fact', ['side', 'is_closed'])):
     def __init__(self, *values, **kwargs):

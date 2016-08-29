@@ -163,8 +163,5 @@ class ConstraintSolver(object):
         return self.make_constraint(source=constraint_1.source, constraint=(
             case_1
             for case_1 in constraint_1
-            if any(
-                case_1.is_compatible_with(case_2)
-                for case_2 in constraint_2
-            )
+            if case_1.is_compatible_with_constraint(constraint_2)
         ))
