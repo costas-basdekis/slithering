@@ -122,10 +122,10 @@ class Constraint(frozenset):
     def being_compatible_with(self, *others):
         return Constraint(
             (
-                case_1
-                for case_1 in self
+                case
+                for case in self
                 if all(
-                    case_1.is_compatible_with_constraint(other)
+                    case.is_compatible_with_constraint(other)
                     for other in others
                 )
             ),
