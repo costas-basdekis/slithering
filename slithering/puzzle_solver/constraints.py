@@ -204,8 +204,12 @@ class Case(frozenset):
         if not sides:
             return True
 
-        self_sides = self.sides_dict(sides)
-        other_sides = other.sides_dict(sides)
+        if sides == self.sides == other.sides:
+            self_sides = self.sides
+            other_sides = other.sides
+        else:
+            self_sides = self.sides_dict(sides)
+            other_sides = other.sides_dict(sides)
 
         return self_sides == other_sides
 
