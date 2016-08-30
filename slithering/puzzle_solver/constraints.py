@@ -1,7 +1,6 @@
 from collections import namedtuple
 
 from slithering.puzzle_solver.sub_solvers import PuzzleSubSolver
-from slithering.utils import cached_property
 
 
 class WithPuzzleConstraints(PuzzleSubSolver):
@@ -101,6 +100,14 @@ class Constraint(frozenset):
                 source = constraint.source
         self.source = source
         super(Constraint, self).__init__(constraint)
+        self.sides = frozenset(
+            side
+            for case in self
+            for side in case.sides
+        )
+        self.common_facts = reduce(frozenset.__and__, map(frozenset, self))
+        self.common_facts_sides = \
+            frozenset(side for side, _ in self.common_facts)
 
     def __str__(self):
         return u'Constraint(%s\n%s\n)' % (
@@ -110,22 +117,6 @@ class Constraint(frozenset):
                 for line in u'\n'.join(map(str, self)).split('\n')
             )
         )
-
-    @cached_property
-    def sides(self):
-        return frozenset(
-            side
-            for case in self
-            for side in case.sides
-        )
-
-    @cached_property
-    def common_facts(self):
-        return reduce(frozenset.__and__, map(frozenset, self))
-
-    @cached_property
-    def common_facts_sides(self):
-        return frozenset(side for side, _ in self.common_facts)
 
     def simplified(self):
         if len(self) == 1:
@@ -194,6 +185,7 @@ class Case(frozenset):
             side: is_closed
             for side, is_closed in self
         }
+        self.sides = frozenset(self.sides_dict)
 
     def __str__(self):
         return u'Case(%s\n%s\n)' % (
@@ -202,13 +194,6 @@ class Case(frozenset):
                 u'    %s' % line
                 for line in u'\n'.join(map(str, self)).split('\n')
             )
-        )
-
-    @cached_property
-    def sides(self):
-        return frozenset(
-            side
-            for side, _ in self
         )
 
     def excluding_sides(self, sides):
