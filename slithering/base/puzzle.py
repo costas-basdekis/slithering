@@ -1,37 +1,41 @@
 import random
 import sys
 
-from slithering import puzzle_svg
+from slithering.base import puzzle_svg
 
 
 class Puzzle(object):
     target_internal_cells_percentage = 0.5
-    svg_generator_class = puzzle_svg.PuzzleSVG
     unsolved_svg_generator_class = puzzle_svg.UnsolvedPuzzleSVG
 
-    def __init__(self, seed=None):
+    def __init__(self, board, seed=None):
         self._frozen = False
+
+        self.board = board
 
         if seed is None:
             seed = self.get_random_seed()
         self.seed = seed
         self.random = random.Random(self.seed)
 
-        self.cells = self.create_cells()
-        self.freeze()
+    @property
+    def cells(self):
+        return self.board.cells
+
+    @property
+    def sides(self):
+        return self.board.sides
+
+    @property
+    def corners(self):
+        return self.board.corners
+
+    @property
+    def solved(self):
+        return not self.sides.unsolved
 
     def get_random_seed(self):
         return random.randint(0, sys.maxint)
-
-    def create_cells(self):
-        raise NotImplementedError()
-
-    def freeze(self):
-        self.cells = self.cells.frozen()
-        self.cells.freeze()
-        self.cells.sides.freeze()
-        self.cells.corners.freeze()
-        self._frozen = True
 
     def clear_puzzle(self):
         self.cells.set(False)
@@ -105,36 +109,22 @@ class Puzzle(object):
         permissible_cells = self.get_permissible_puzzle_cells()
         return self.random.choice(sorted(permissible_cells))
 
-    @property
-    def sides(self):
-        return self.cells.sides
-
-    @property
-    def corners(self):
-        return self.cells.corners
-
-    @property
-    def solved(self):
-        return not self.sides.unsolved
-
     @classmethod
-    def register_svg_generator_class(cls, svg_generator_class):
-        cls.svg_generator_class = svg_generator_class
-        return svg_generator_class
-
-    @classmethod
-    def register_unsolved_svg_generator_class(cls, unsolved_svg_generator_class):
+    def register_unsolved_svg_generator_class(
+            cls, unsolved_svg_generator_class):
         cls.unsolved_svg_generator_class = unsolved_svg_generator_class
         return unsolved_svg_generator_class
 
     def create_svg(self, *args, **kwargs):
-        return self.svg_generator_class(self, *args, **kwargs).svg
+        return self.board.create_svg(*args, **kwargs)
 
     def create_unsolved_svg(self, *args, **kwargs):
         return self.unsolved_svg_generator_class(self, *args, **kwargs).svg
 
 
 class RegularPolygonPuzzle(Puzzle):
-    cell_sides_count = None
-    svg_generator_class = puzzle_svg.RegularPolygonPuzzleSVG
     unsolved_svg_generator_class = puzzle_svg.UnsolvedRegularPolygonPuzzleSVG
+
+    @property
+    def cell_sides_count(self):
+        return self.board.cell_sides_count

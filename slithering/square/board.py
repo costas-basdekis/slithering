@@ -1,22 +1,22 @@
-import slithering.board.parts
-from slithering import puzzle
+import slithering.base
+from slithering.regular_polygon.board import RegularPolygonBoard
 
 
-class SquarePuzzle(puzzle.RegularPolygonPuzzle):
+class SquareBoard(RegularPolygonBoard):
     cell_sides_count = 4
 
     def __init__(self, width, height, **kwargs):
         self.width, self.height = width, height
-        super(SquarePuzzle, self).__init__(**kwargs)
+        super(SquareBoard, self).__init__(**kwargs)
 
     def create_cells(self):
         cells = {
-            (x, y): slithering.board.parts.Cell((x, y))
+            (x, y): slithering.base.parts.Cell((x, y))
             for x in xrange(self.width)
             for y in xrange(self.height)
         }
         corners = {
-            (x, y): slithering.board.parts.Corner((x, y, 0))
+            (x, y): slithering.base.parts.Corner((x, y, 0))
             for x in xrange(self.width + 1)
             for y in xrange(self.height + 1)
         }
@@ -25,12 +25,12 @@ class SquarePuzzle(puzzle.RegularPolygonPuzzle):
         VERTICAL = "vertical"
         sides = {}
         sides.update({
-            (x, y, HORIZONTAL): slithering.board.parts.Side()
+            (x, y, HORIZONTAL): slithering.base.parts.Side()
             for x in xrange(self.width)
             for y in xrange(self.height + 1)
         })
         sides.update({
-            (x, y, VERTICAL): slithering.board.parts.Side()
+            (x, y, VERTICAL): slithering.base.parts.Side()
             for x in xrange(self.width + 1)
             for y in xrange(self.height)
         })
@@ -55,10 +55,7 @@ class SquarePuzzle(puzzle.RegularPolygonPuzzle):
                     corners[(x, y + 1)],
                 )
 
-        return slithering.board.parts.Cells(cells.itervalues())
-
-    def get_random_starting_cell_for_puzzle(self):
-        return self.cells[(self.width / 2, self.height / 2)]
+        return slithering.base.parts.Cells(cells.itervalues())
 
     def row(self, y):
         return [
@@ -69,17 +66,3 @@ class SquarePuzzle(puzzle.RegularPolygonPuzzle):
     @property
     def rows(self):
         return map(self.row, xrange(self.height))
-
-    def print_all_possible_hints(self):
-        for row in self.rows:
-            print ' '.join(
-                str(len(cell.sides.closed) or' ')
-                for cell in row
-            )
-
-    def print_cells_membership(self):
-        for row in self.rows:
-            print ' '.join(
-                'I' if cell.is_internal else ' '
-                for cell in row
-            )

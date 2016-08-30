@@ -1,6 +1,6 @@
 import itertools
 
-from slithering.puzzle_solver.constraints import Constraint, Case
+from slithering.solver.constraints import Constraint, Case
 
 
 class ConstraintSolver(object):

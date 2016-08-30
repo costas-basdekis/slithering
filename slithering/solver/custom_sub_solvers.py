@@ -1,11 +1,11 @@
 import itertools
 
-from slithering.puzzle_solver.constraint_solver import ConstraintSolver
-from slithering.puzzle_solver.constraints import WithPuzzleConstraints, \
+from slithering.solver.constraint_solver import ConstraintSolver
+from slithering.solver.constraints import WithPuzzleConstraints, \
     Constraint, Case
-from slithering.puzzle_solver.sub_solvers import PuzzleSubSolver, \
+from slithering.solver.sub_solvers import PuzzleSubSolver, \
     CellSubSolver, CornerSubSolver
-from slithering.puzzle_solver.solver import PuzzleSolver
+from slithering.solver.solver import PuzzleSolver
 
 
 @PuzzleSolver.register_cell_sub_solver_class
