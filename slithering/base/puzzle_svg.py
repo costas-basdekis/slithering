@@ -1,16 +1,18 @@
+import os
 import math
-
 import svgwrite
 import svgwrite.shapes
 import svgwrite.text
 
 from slithering import registrable
 from slithering import strategy_creator
+from slithering import utils
 
 
 @registrable.registrable
 class PuzzleSVG(object):
-    base_directory = '/tmp/'
+    base_directory = utils.ensure_directory(
+        os.path.join(utils.BASE_DIRECTORY, 'tmp', 'svg'))
 
     PointMapper = registrable.Registrable
 

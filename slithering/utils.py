@@ -1,3 +1,19 @@
+import os
+import errno
+
+BASE_DIRECTORY = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+
+
+def ensure_directory(directory):
+    try:
+        os.makedirs(directory)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
+    return directory
+
+
 class cached_property(property):
     def __get__(self, instance, owner):
         if not instance:
