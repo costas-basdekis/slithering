@@ -10,6 +10,8 @@ from slithering import strategy_creator
 
 @registrable.registrable
 class PuzzleSVG(object):
+    base_directory = '/tmp/'
+
     PointMapper = registrable.Registrable
 
     CellSVG = registrable.Registrable
@@ -30,7 +32,7 @@ class PuzzleSVG(object):
         self.svg = self.create_svg()
 
     def get_default_filename(self):
-        return '/tmp/%s.svg' % type(self.puzzle).__name__
+        return '%s%s.svg' % (self.base_directory, type(self.puzzle).__name__)
 
     def create_svg(self):
         drawing = svgwrite.Drawing(self.filename)
@@ -391,7 +393,8 @@ class RegularPolygonPointMapper(PointMapper):
 
 class UnsolvedPuzzleSVG(PuzzleSVG):
     def get_default_filename(self):
-        return '/tmp/%s_unsolved.svg' % type(self.puzzle).__name__
+        return '%s%s_unsolved.svg' \
+               % (self.base_directory, type(self.puzzle).__name__)
 
 
 @UnsolvedPuzzleSVG.register_CellSVG
