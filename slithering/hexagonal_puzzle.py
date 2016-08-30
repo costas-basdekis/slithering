@@ -1,5 +1,6 @@
 import math
 
+import slithering.board.parts
 from slithering import puzzle
 from slithering import puzzle_svg
 
@@ -20,7 +21,7 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
 
     def _create_cells(self, sides_by_key):
         cells = {
-            (x, y): puzzle.Cell((x, y))
+            (x, y): slithering.board.parts.Cell((x, y))
             for x in xrange(self.width)
             for y in xrange(self.height)
         }
@@ -35,7 +36,7 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
                         ])
                     assert len(cell.sides) == 6, len(cell.sides)
 
-        return puzzle.Cells(cells.itervalues())
+        return slithering.board.parts.Cells(cells.itervalues())
 
     def _create_corners(self):
         positions_by_key = {}
@@ -54,7 +55,7 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
         }
 
         corners_by_position = {
-            position: puzzle.Corner(a_key)
+            position: slithering.board.parts.Corner(a_key)
             for position, a_key in a_key_py_position.iteritems()
         }
 
@@ -81,7 +82,7 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
         }
         sides_by_corner_pairs = {}
         for corner_pair in all_corner_pairs:
-            side = puzzle.Side()
+            side = slithering.board.parts.Side()
             side.add_corners(*corner_pair)
             sides_by_corner_pairs[corner_pair] = side
 
