@@ -190,6 +190,10 @@ class Case(frozenset):
                 source = case.source
         self.source = source
         super(Case, self).__init__(case)
+        self.sides_dict = {
+            side: is_closed
+            for side, is_closed in self
+        }
 
     def __str__(self):
         return u'Case(%s\n%s\n)' % (
@@ -227,26 +231,15 @@ class Case(frozenset):
             if side in sides
         ), source=self.source)
 
-    def sides_dict(self, sides):
-        return {
-            side: is_closed
-            for side, is_closed in self
-            if side in sides
-        }
-
     def is_compatible_with(self, other):
         sides = self.sides & other.sides
         if not sides:
             return True
 
-        if sides == self.sides == other.sides:
-            self_sides = self.sides
-            other_sides = other.sides
-        else:
-            self_sides = self.sides_dict(sides)
-            other_sides = other.sides_dict(sides)
-
-        return self_sides == other_sides
+        return all(
+            self.sides_dict[side] == other.sides_dict[side]
+            for side in sides
+        )
 
     def is_compatible_with_constraint(self, constraint):
         return any(
