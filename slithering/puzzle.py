@@ -185,10 +185,10 @@ class CellsBase(SetBase):
     def border(self):
         neighbours = Cells((
             neighbour
-            for cell in self.internal
+            for cell in self
             for neighbour in cell.neighbours
         ))
-        return neighbours - self.internal
+        return neighbours - self
 
     @property
     def non_splitting(self):
@@ -589,10 +589,11 @@ class Puzzle(object):
         cell.is_internal = True
 
     def get_permissible_puzzle_cells(self):
-        if not self.cells.internal:
+        internal = self.cells.internal
+        if not internal:
             return self.cells
 
-        return self.cells.border.non_splitting
+        return internal.border.non_splitting
 
     def create_random_puzzle_cells_sequence(self):
         target_internal_cells_count = \
