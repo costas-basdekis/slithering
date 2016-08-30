@@ -105,25 +105,6 @@ class Cell(object):
     def adjacent_cells(self):
         return self.corners.cells - {self}
 
-    @classmethod
-    def group_cells_by_internal_adjacent_cells_ratio(cls, cells):
-        cells_and_ratios = [
-            (cell, cell.adjacent_cells.internal_ratio)
-            for cell in cells
-        ]
-
-        ratios = set(ratio for _, ratio in cells_and_ratios)
-        by_ratio = {
-            ratio: {
-                cell
-                for cell, cell_ratio in cells_and_ratios
-                if cell_ratio == ratio
-            }
-            for ratio in ratios
-        }
-
-        return by_ratio
-
     def get_connected_cells_in(self, cells):
         cells = set(cells) | {self}
         if len(cells) <= 1:
@@ -175,6 +156,25 @@ class CellsBase(KeyedSet):
     @property
     def internal_ratio(self):
         return 1. * len(self.internal) / len(self)
+
+    @property
+    def grouped_by_internal_adjacent_cells_ratio(self):
+        cells_and_ratios = [
+            (cell, cell.adjacent_cells.internal_ratio)
+            for cell in self
+        ]
+
+        ratios = set(ratio for _, ratio in cells_and_ratios)
+        by_ratio = {
+            ratio: {
+                cell
+                for cell, cell_ratio in cells_and_ratios
+                if cell_ratio == ratio
+            }
+            for ratio in ratios
+        }
+
+        return by_ratio
 
     @property
     def border(self):
@@ -600,7 +600,7 @@ class Puzzle(object):
     def get_random_cell_for_puzzle(self):
         permissible_cells = self.get_permissible_puzzle_cells()
         cells_by_ratio = \
-            Cell.group_cells_by_internal_adjacent_cells_ratio(permissible_cells)
+            permissible_cells.grouped_by_internal_adjacent_cells_ratio
         ratios = sorted(set(cells_by_ratio))
         minimum_ratio = self.random.random()
 
