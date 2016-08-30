@@ -1,7 +1,8 @@
 import itertools
 
 from slithering.puzzle_solver.constraint_solver import ConstraintSolver
-from slithering.puzzle_solver.constraints import WithPuzzleConstraints
+from slithering.puzzle_solver.constraints import WithPuzzleConstraints, \
+    Constraint, Case
 from slithering.puzzle_solver.sub_solvers import PuzzleSubSolver, \
     CellSubSolver, CornerSubSolver
 from slithering.puzzle_solver.solver import PuzzleSolver
@@ -33,13 +34,13 @@ class CellHintSubSolver(WithPuzzleConstraints, CellSubSolver):
         sides = self.cell.sides
         combinations = itertools.combinations(sides, self.cell.hint)
 
-        constraint = self.make_constraint(source=u'From hint', constraint=(
-            self.make_case(source=u'Hint possibility', case=(
+        constraint = Constraint((
+            Case((
                 (side, side in combination)
                 for side in sides
-            ))
+            ), source=u'Hint possibility')
             for combination in combinations
-        ))
+        ), source=u'From hint')
 
         return constraint
 
@@ -156,22 +157,16 @@ class CornerConstraints(WithPuzzleConstraints, CornerSubSolver):
         return changed
 
     def constraint(self):
-        constraint = self.make_constraint(source=u'From corner', constraint=(
-            self.make_case(
-                source=u'Corner solves to unused',
-                case=(
-                    (side, False) for side in self.corner.sides
-                ),
-            ),
+        constraint = Constraint((
+            Case((
+                (side, False) for side in self.corner.sides
+            ), source=u'Corner solves to unused'),
         ) + tuple(
-            self.make_case(
-                source=u'Corner uses sides %s' % str(side_pair),
-                case=(
-                    (side, side in side_pair) for side in self.corner.sides
-                ),
-            )
+            Case((
+                (side, side in side_pair) for side in self.corner.sides
+            ), source=u'Corner uses sides %s' % str(side_pair))
             for side_pair in itertools.combinations(self.corner.sides, 2)
-        ))
+        ), source=u'From corner')
 
         return constraint
 

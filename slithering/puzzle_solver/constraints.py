@@ -11,15 +11,6 @@ class WithPuzzleConstraints(PuzzleSubSolver):
 
         return self.puzzle.constraints
 
-    def make_constraint(self, constraint, source=None):
-        return Constraint(constraint, source=source)
-
-    def make_case(self, case, source=None):
-        return Case(case, source=source)
-
-    def make_fact(self, fact, source=None):
-        return Fact(*fact, source=source)
-
 
 class Constraints(set):
     def __init__(self):

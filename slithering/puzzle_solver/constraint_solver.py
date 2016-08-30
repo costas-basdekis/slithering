@@ -1,6 +1,6 @@
 import itertools
 
-from slithering.puzzle_solver.constraints import Constraint, Case, Fact
+from slithering.puzzle_solver.constraints import Constraint, Case
 
 
 class ConstraintSolver(object):
@@ -11,15 +11,6 @@ class ConstraintSolver(object):
     @property
     def constraints(self):
         return self.puzzle.constraints
-
-    def make_constraint(self, constraint, source=None):
-        return Constraint(constraint, source=source)
-
-    def make_case(self, case, source=None):
-        return Case(case, source=source)
-
-    def make_fact(self, fact, source=None):
-        return Fact(*fact, source=source)
 
     def apply(self):
         changed = False
@@ -39,15 +30,12 @@ class ConstraintSolver(object):
         return changed
 
     def add_solved_sides_constraint(self):
-        constraint = self.make_constraint(
-            source=u'Solved sides',
-            constraint=(
-                self.make_case(source=u'Solved sides', case=(
-                    (side, side.is_closed)
-                    for side in self.puzzle.sides.solved
-                )),
-            )
-        )
+        constraint = Constraint((
+            Case((
+                (side, side.is_closed)
+                for side in self.puzzle.sides.solved
+            ), source=u'Solved sides'),
+        ), source=u'Solved sides')
         self.constraints.add(constraint)
         return constraint
 
