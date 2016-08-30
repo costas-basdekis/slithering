@@ -1,3 +1,4 @@
+import slithering.board.parts
 from slithering import puzzle
 
 
@@ -10,12 +11,12 @@ class SquarePuzzle(puzzle.RegularPolygonPuzzle):
 
     def create_cells(self):
         cells = {
-            (x, y): puzzle.Cell((x, y))
+            (x, y): slithering.board.parts.Cell((x, y))
             for x in xrange(self.width)
             for y in xrange(self.height)
         }
         corners = {
-            (x, y): puzzle.Corner((x, y, 0))
+            (x, y): slithering.board.parts.Corner((x, y, 0))
             for x in xrange(self.width + 1)
             for y in xrange(self.height + 1)
         }
@@ -24,12 +25,12 @@ class SquarePuzzle(puzzle.RegularPolygonPuzzle):
         VERTICAL = "vertical"
         sides = {}
         sides.update({
-            (x, y, HORIZONTAL): puzzle.Side()
+            (x, y, HORIZONTAL): slithering.board.parts.Side()
             for x in xrange(self.width)
             for y in xrange(self.height + 1)
         })
         sides.update({
-            (x, y, VERTICAL): puzzle.Side()
+            (x, y, VERTICAL): slithering.board.parts.Side()
             for x in xrange(self.width + 1)
             for y in xrange(self.height)
         })
@@ -54,7 +55,7 @@ class SquarePuzzle(puzzle.RegularPolygonPuzzle):
                     corners[(x, y + 1)],
                 )
 
-        return puzzle.Cells(cells.itervalues())
+        return slithering.board.parts.Cells(cells.itervalues())
 
     def get_random_starting_cell_for_puzzle(self):
         return self.cells[(self.width / 2, self.height / 2)]
