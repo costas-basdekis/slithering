@@ -427,14 +427,14 @@ class BaseTestPuzzleCreation(BaseTestPuzzle):
 
     def test_all_closed_sides_are_connected(self):
         closed_sides = self.puzzle.sides.closed
-        a_side = sorted(closed_sides).pop()
+        a_side = closed_sides.peek()
         connected_sides = a_side.closed_neighbours_recursive
         unconnected_sides = closed_sides - connected_sides
         self.assertFalse(unconnected_sides)
 
     def test_all_internal_cells_are_connected(self):
         internal_cells = self.puzzle.cells.internal
-        an_internal_cell = set(internal_cells).pop()
+        an_internal_cell = internal_cells.peek()
         connected_internal_cells = \
             an_internal_cell.get_connected_cells_in(internal_cells)
         unconnected_internal_cells = internal_cells - connected_internal_cells

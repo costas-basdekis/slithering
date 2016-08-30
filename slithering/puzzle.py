@@ -30,6 +30,11 @@ class KeyedSet(object):
         return from_keys
 
 
+class SetBase(KeyedSet):
+    def peek(self):
+        return next(iter(self))
+
+
 class Cell(object):
     def __init__(self, key):
         self._frozen = False
@@ -126,7 +131,7 @@ class Cell(object):
         return any(self.sides.on_edge)
 
 
-class CellsBase(KeyedSet):
+class CellsBase(SetBase):
     def frozen(self):
         return Cells(self)
 
@@ -195,7 +200,7 @@ class CellsBase(KeyedSet):
 
     @property
     def are_connected(self):
-        a_cell = set(self).pop()
+        a_cell = self.peek()
         connected_cells = a_cell.get_connected_cells_in(self)
 
         return connected_cells == self
@@ -332,7 +337,7 @@ class Side(object):
         return len(self.cells) == 1
 
 
-class SidesBase(KeyedSet):
+class SidesBase(SetBase):
     def frozen(self):
         return Sides(self)
 
@@ -478,7 +483,7 @@ class Corner(object):
         return self.sides.corners - {self}
 
 
-class CornersBase(KeyedSet):
+class CornersBase(SetBase):
     def frozen(self):
         return Corners(self)
 
