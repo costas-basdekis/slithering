@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from slithering.puzzle_solver.sub_solvers import PuzzleSubSolver
+from slithering.solver.sub_solvers import PuzzleSubSolver
 
 
 class WithPuzzleConstraints(PuzzleSubSolver):

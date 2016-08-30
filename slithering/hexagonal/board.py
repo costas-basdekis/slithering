@@ -1,16 +1,13 @@
-import math
-
-import slithering.board.parts
-from slithering import puzzle
-from slithering import puzzle_svg
+from slithering.base import parts
+from slithering.regular_polygon.board import RegularPolygonBoard
 
 
-class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
+class HexagonalBoard(RegularPolygonBoard):
     cell_sides_count = 6
 
     def __init__(self, width, height, **kwargs):
         self.width, self.height = width, height
-        super(HexagonalPuzzle, self).__init__(**kwargs)
+        super(HexagonalBoard, self).__init__(**kwargs)
 
     def create_cells(self):
         corners_by_key = self._create_corners()
@@ -21,7 +18,7 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
 
     def _create_cells(self, sides_by_key):
         cells = {
-            (x, y): slithering.board.parts.Cell((x, y))
+            (x, y): parts.Cell((x, y))
             for x in xrange(self.width)
             for y in xrange(self.height)
         }
@@ -36,7 +33,7 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
                         ])
                     assert len(cell.sides) == 6, len(cell.sides)
 
-        return slithering.board.parts.Cells(cells.itervalues())
+        return parts.Cells(cells.itervalues())
 
     def _create_corners(self):
         positions_by_key = {}
@@ -55,7 +52,7 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
         }
 
         corners_by_position = {
-            position: slithering.board.parts.Corner(a_key)
+            position: parts.Corner(a_key)
             for position, a_key in a_key_py_position.iteritems()
         }
 
@@ -82,7 +79,7 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
         }
         sides_by_corner_pairs = {}
         for corner_pair in all_corner_pairs:
-            side = slithering.board.parts.Side()
+            side = parts.Side()
             side.add_corners(*corner_pair)
             sides_by_corner_pairs[corner_pair] = side
 
@@ -98,9 +95,6 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
 
         return sides
 
-    def get_random_starting_cell_for_puzzle(self):
-        return self.cells[(self.width / 2, self.height / 2)]
-
     def row(self, y):
         return [
             self.cells[(x, y)]
@@ -110,44 +104,3 @@ class HexagonalPuzzle(puzzle.RegularPolygonPuzzle):
     @property
     def rows(self):
         return map(self.row, xrange(self.height))
-
-    def print_all_possible_hints(self):
-        for index, row in enumerate(self.rows):
-            print ' ' * (index % 2) + ' '.join(
-                str(len(cell.sides.closed) or ' ')
-                for cell in row
-            )
-
-    def print_cells_membership(self):
-        for index, row in enumerate(self.rows):
-            print ' ' * (index % 2) + ' '.join(
-                'I' if cell.is_internal else ' '
-                for cell in row
-            )
-
-
-@HexagonalPuzzle.register_svg_generator_class
-class HexagonalPuzzleSVG(puzzle_svg.RegularPolygonPuzzleSVG):
-    pass
-
-
-@HexagonalPuzzleSVG.register_PointMapper
-class HexagonalPointMapperSVG(puzzle_svg.RegularPolygonPointMapper):
-    def get_cell_center_point_by_position(self, cell_x, cell_y):
-        size_angle = 2 * math.pi * 1 / 6
-
-        cell_width = 2 * math.sin(size_angle)
-        odd_line_x_offset = (0.5 if (cell_y % 2) else 0)
-        x_center = (1 + cell_x + odd_line_x_offset) * cell_width
-        x = x_center * self.side_width
-
-        cell_height = 3 * math.cos(size_angle)
-        y_center = (1 + cell_y) * cell_height
-        y = y_center * self.side_width
-
-        return (x, y)
-
-
-@HexagonalPuzzle.register_unsolved_svg_generator_class
-class UnslovedHexagonalPuzzleSVG(puzzle_svg.UnsolvedRegularPolygonPuzzleSVG, HexagonalPuzzleSVG):
-    pass
