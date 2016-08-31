@@ -11,7 +11,10 @@ from slithering.solver.solver import PuzzleSolver
 @PuzzleSolver.register_cell_sub_solver_class
 class CellHintSubSolver(WithPuzzleConstraints, CellSubSolver):
     @classmethod
-    def is_suitable(cls, puzzle, cell):
+    def is_suitable(cls, solver, puzzle, cell):
+        if not hasattr(solver, 'constraint_solver'):
+            return False
+
         if not cell.hint_is_given:
             return False
 
@@ -49,7 +52,7 @@ class CellHintSubSolver(WithPuzzleConstraints, CellSubSolver):
 class CellSolvedEdgeSideSubSolver(CellSubSolver):
     """An edge side of cell is solved"""
     @classmethod
-    def is_suitable(cls, puzzle, cell):
+    def is_suitable(cls, solver, puzzle, cell):
         if cell.solved:
             return False
 
@@ -93,7 +96,7 @@ class CellSolvedEdgeSideSubSolver(CellSubSolver):
 class CellSolvedSideSubSolver(CellSubSolver):
     """An non-edge side of cell is solved"""
     @classmethod
-    def is_suitable(cls, puzzle, cell):
+    def is_suitable(cls, solver, puzzle, cell):
         if cell.solved:
             return False
 
@@ -142,7 +145,10 @@ class CellSolvedSideSubSolver(CellSubSolver):
 @PuzzleSolver.register_corner_sub_solver_class
 class CornerConstraints(WithPuzzleConstraints, CornerSubSolver):
     @classmethod
-    def is_suitable(cls, puzzle, corner):
+    def is_suitable(cls, solver, puzzle, corner):
+        if not hasattr(solver, 'constraint_solver'):
+            return False
+
         return True
 
     def apply(self):
@@ -174,12 +180,12 @@ class CornerConstraints(WithPuzzleConstraints, CornerSubSolver):
 @PuzzleSolver.register_puzzle_sub_solver_class
 class PuzzleConstraints(WithPuzzleConstraints, PuzzleSubSolver):
     @classmethod
-    def is_suitable(cls, puzzle):
+    def is_suitable(cls, solver, puzzle):
         return True
 
-    def __init__(self, puzzle):
-        super(PuzzleConstraints, self).__init__(puzzle)
-        self.constraint_solver = \
+    def __init__(self, solver, puzzle):
+        super(PuzzleConstraints, self).__init__(solver, puzzle)
+        self.solver.constraint_solver = self.constraint_solver = \
             ConstraintSolver(self.puzzle, debug=True)
 
     def apply(self):

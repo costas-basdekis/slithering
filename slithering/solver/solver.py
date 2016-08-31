@@ -57,18 +57,18 @@ class PuzzleSolver(object):
 
     def create_suitable_puzzle_sub_solvers(self, sub_solver_classes):
         return frozenset(
-            sub_solver_class(self.puzzle)
+            sub_solver_class(self, self.puzzle)
             for sub_solver_class in sub_solver_classes
-            if sub_solver_class.is_suitable(self.puzzle)
+            if sub_solver_class.is_suitable(self, self.puzzle)
         )
 
     def create_suitable_puzzle_item_sub_solvers(
             self, items, sub_solver_classes):
         return frozenset(
-            sub_solver_class(self.puzzle, item)
+            sub_solver_class(self, self.puzzle, item)
             for item in items
             for sub_solver_class in sub_solver_classes
-            if sub_solver_class.is_suitable(self.puzzle, item)
+            if sub_solver_class.is_suitable(self, self.puzzle, item)
         )
 
     def apply(self):

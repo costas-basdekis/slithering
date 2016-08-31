@@ -1,7 +1,8 @@
 class SubSolver(object):
     """A sub-solver that can make changes, or create new sub-solvers"""
-    def __init__(self):
+    def __init__(self, solver):
         self.finished = False
+        self.solver = solver
 
     def __hash__(self):
         return hash(tuple(self.hash_key()))
@@ -32,40 +33,39 @@ class SubSolver(object):
 
 
 class PuzzleSubSolver(SubSolver):
-    def __init__(self, puzzle):
-        super(PuzzleSubSolver, self).__init__()
+    def __init__(self, solver, puzzle):
+        super(PuzzleSubSolver, self).__init__(solver)
         self.puzzle = puzzle
 
     def hash_key(self):
         return tuple((type(self), self.puzzle))
 
     @classmethod
-    def is_suitable(cls, puzzle):
+    def is_suitable(cls, solver, puzzle):
         raise NotImplementedError()
 
 
 class CellSubSolver(PuzzleSubSolver):
-    def __init__(self, puzzle, cell):
-        super(CellSubSolver, self).__init__(puzzle)
+    def __init__(self, solver, puzzle, cell):
+        super(CellSubSolver, self).__init__(solver, puzzle)
         self.cell = cell
 
     def hash_key(self):
         return tuple((type(self), self.cell.key))
 
     @classmethod
-    def is_suitable(cls, puzzle, cell):
+    def is_suitable(cls, solver, puzzle, cell):
         raise NotImplementedError()
 
 
 class CornerSubSolver(PuzzleSubSolver):
-    def __init__(self, puzzle, corner):
-        super(CornerSubSolver, self).__init__(puzzle)
+    def __init__(self, solver, puzzle, corner):
+        super(CornerSubSolver, self).__init__(solver, puzzle)
         self.corner = corner
 
     def hash_key(self):
         return tuple((type(self), self.corner.key))
 
     @classmethod
-    def is_suitable(cls, puzzle, corner):
-        return super(CornerSubSolver, cls)\
-            .is_suitable(puzzle=puzzle, corner=corner)
+    def is_suitable(cls, solver, puzzle, corner):
+        raise NotImplementedError()
