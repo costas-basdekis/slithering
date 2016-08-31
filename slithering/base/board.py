@@ -1,8 +1,8 @@
-from slithering.base import puzzle_svg
+from slithering.base import svg_creator
 
 
 class Board(object):
-    svg_generator_class = puzzle_svg.PuzzleSVG
+    svg_generator_class = svg_creator.SVGCreator
 
     def __init__(self):
         self._frozen = False

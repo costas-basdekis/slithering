@@ -5,7 +5,7 @@ from slithering.square.puzzle import SquarePuzzle
 
 class SquareBase(object):
     board_class = SquareBoard
-    board_kwargs = dict(_base.PuzzleSVGBase.board_kwargs, **{
+    board_kwargs = dict(_base.SVGCreatorBase.board_kwargs, **{
         'width': 20,
         'height': 20,
     })

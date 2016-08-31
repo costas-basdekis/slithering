@@ -10,7 +10,7 @@ from slithering import utils
 
 
 @registrable.registrable
-class PuzzleSVG(object):
+class SVGCreator(object):
     base_directory = utils.ensure_directory(
         os.path.join(utils.BASE_DIRECTORY, 'tmp', 'svg'))
 
@@ -54,13 +54,13 @@ class PuzzleSVG(object):
         return drawing
 
     def create_cell(self, cell):
-        return self.CellSVG.create(item=cell, puzzle_svg=self)
+        return self.CellSVG.create(item=cell, svg_creator=self)
 
     def create_side(self, side):
-        return self.SideSVG.create(item=side, puzzle_svg=self)
+        return self.SideSVG.create(item=side, svg_creator=self)
 
     def create_corner(self, corner):
-        return self.CornerSVG.create(item=corner, puzzle_svg=self)
+        return self.CornerSVG.create(item=corner, svg_creator=self)
 
     def get_cell_center_point(self, cell):
         return self.point_mapper.get_cell_center_point(cell)
@@ -69,10 +69,10 @@ class PuzzleSVG(object):
         return self.point_mapper.get_corner_point(corner)
 
 
-@PuzzleSVG.register_PointMapper
+@SVGCreator.register_PointMapper
 class PointMapper(object):
-    def __init__(self, puzzle_svg, puzzle):
-        self.puzzle_svg = puzzle_svg
+    def __init__(self, svg_creator, puzzle):
+        self.svg_creator = svg_creator
         self.puzzle = puzzle
 
     def get_cell_center_point(self, cell):
@@ -83,11 +83,11 @@ class PointMapper(object):
 
     @property
     def side_width(self):
-        return self.puzzle_svg.side_width
+        return self.svg_creator.side_width
 
     @property
     def corner_width(self):
-        return self.puzzle_svg.corner_width
+        return self.svg_creator.corner_width
 
 
 class PuzzleItemCreator(strategy_creator.StrategyCreator):
@@ -99,8 +99,8 @@ class PuzzleItemCreator(strategy_creator.StrategyCreator):
     def creators(self):
         raise NotImplementedError("%s must define 'creators'" % type(self))
 
-    def __init__(self, puzzle_svg, item):
-        self.puzzle_svg = puzzle_svg
+    def __init__(self, svg_creator, item):
+        self.svg_creator = svg_creator
         self.item = item
 
     @property
@@ -113,29 +113,29 @@ class PuzzleItemCreator(strategy_creator.StrategyCreator):
 
     def create_item(self):
         return sum([
-            creatable.create(puzzle_svg=self.puzzle_svg, item=self.item)
+            creatable.create(svg_creator=self.svg_creator, item=self.item)
             for creatable in self.creators
         ], [])
 
     @property
     def side_width(self):
-        return self.puzzle_svg.side_width
+        return self.svg_creator.side_width
 
     @property
     def corner_width(self):
-        return self.puzzle_svg.corner_width
+        return self.svg_creator.corner_width
 
     def get_corner_point(self, corner):
-        return self.puzzle_svg.get_corner_point(corner)
+        return self.svg_creator.get_corner_point(corner)
 
     def get_corner_points(self, corners):
         return map(self.get_corner_point, corners)
 
     def get_cell_center_point(self, cell):
-        return self.puzzle_svg.get_cell_center_point(cell)
+        return self.svg_creator.get_cell_center_point(cell)
 
 
-@PuzzleSVG.register_CellSVG
+@SVGCreator.register_CellSVG
 @registrable.registrable
 class CellSVG(PuzzleItemCreator):
     item_name = 'cell'
@@ -241,7 +241,7 @@ class GivenCellHintTextSVG(CellHintTextSVG):
         return hint_text
 
 
-@PuzzleSVG.register_SideSVG
+@SVGCreator.register_SideSVG
 @registrable.registrable
 class SideSVG(PuzzleItemCreator):
     item_name = 'side'
@@ -310,7 +310,7 @@ class OpenSideLineSVG(SideLineSVG):
         return kwargs
 
 
-@PuzzleSVG.register_CornerSVG
+@SVGCreator.register_CornerSVG
 @registrable.registrable
 class CornerSVG(PuzzleItemCreator):
     item_name = 'corner'
@@ -334,7 +334,7 @@ class CornerDotSVG(PuzzleItemCreator):
 
         return [
             svgwrite.shapes.Circle(
-                (x, y), self.puzzle_svg.corner_width, **kwargs),
+                (x, y), self.svg_creator.corner_width, **kwargs),
         ]
 
     def get_kwargs(self):
@@ -346,11 +346,11 @@ class CornerDotSVG(PuzzleItemCreator):
         return kwargs
 
 
-class RegularPolygonPuzzleSVG(PuzzleSVG):
+class RegularPolygonSVGCreator(SVGCreator):
     pass
 
 
-@RegularPolygonPuzzleSVG.register_PointMapper
+@RegularPolygonSVGCreator.register_PointMapper
 class RegularPolygonPointMapper(PointMapper):
     @property
     def corner_index_offset(self):
@@ -394,13 +394,13 @@ class RegularPolygonPointMapper(PointMapper):
         return x, y
 
 
-class UnsolvedPuzzleSVG(PuzzleSVG):
+class UnsolvedSVGCreator(SVGCreator):
     def get_default_filename(self):
         return os.path.join(self.base_directory,
                             '%s_unsolved.svg' % type(self.puzzle).__name__)
 
 
-@UnsolvedPuzzleSVG.register_CellSVG
+@UnsolvedSVGCreator.register_CellSVG
 @registrable.registrable
 class UnsolvedCellSVG(CellSVG):
     pass
@@ -443,12 +443,12 @@ class WithheldCellHintTextSVG(CellHintTextSVG):
         return []
 
 
-class UnsolvedRegularPolygonPuzzleSVG(UnsolvedPuzzleSVG, RegularPolygonPuzzleSVG):
+class UnsolvedRegularPolygonSVGCreator(UnsolvedSVGCreator, RegularPolygonSVGCreator):
     # PointMapper = RegularPolygonPointMapper
     pass
 
 
-@UnsolvedPuzzleSVG.register_SideSVG
+@UnsolvedSVGCreator.register_SideSVG
 @registrable.registrable
 class UnsolvedSideSVG(SideSVG):
     UnsolvedSideLineSVG = registrable.Registrable

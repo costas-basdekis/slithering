@@ -2,7 +2,7 @@ from slithering.tests import base as _base
 from slithering.tests.hexagonal import base as _hexagonal_base
 
 
-class HexagonalPuzzleSVGTests(
+class HexagonalSVGCreatorTests(
         _hexagonal_base.HexagonalBase,
-        _base.AllPuzzleSVGTests):
+        _base.AllSVGCreatorTests):
     pass

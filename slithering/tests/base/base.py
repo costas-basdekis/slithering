@@ -26,8 +26,8 @@ class SolverBase(PuzzleBase):
         return self.solver_class(puzzle)
 
 
-class PuzzleSVGBase(PuzzleBase):
-    puzzle_svg_kwargs = {}
+class SVGCreatorBase(PuzzleBase):
+    svg_creator_kwargs = {}
 
 
 class BaseBoardTestCase(BoardBase, TestCase):
@@ -51,5 +51,5 @@ class BaseSolverTestCase(SolverBase, BasePuzzleTestCase):
         self.solver.solve()
 
 
-class BasePuzzleSVGTestCase(PuzzleSVGBase, BasePuzzleTestCase):
+class BaseSVGCreatorTestCase(SVGCreatorBase, BasePuzzleTestCase):
     pass

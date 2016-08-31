@@ -2,7 +2,7 @@ from slithering.tests.base.base import BasePuzzleTestCase
 
 
 class BaseTestPuzzle(BasePuzzleTestCase):
-    puzzle_svg_kwargs = {}
+    svg_creator_kwargs = {}
 
 
 class BaseTestPuzzleCreation(BaseTestPuzzle):

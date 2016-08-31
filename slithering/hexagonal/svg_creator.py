@@ -1,16 +1,14 @@
 import math
 
-from slithering.base import puzzle_svg
-from slithering.hexagonal.puzzle import HexagonalPuzzle
+from slithering.base import svg_creator
 
 
-@HexagonalPuzzle.register_svg_generator_class
-class HexagonalPuzzleSVG(puzzle_svg.RegularPolygonPuzzleSVG):
+class HexagonalSVGCreator(svg_creator.RegularPolygonSVGCreator):
     pass
 
 
-@HexagonalPuzzleSVG.register_PointMapper
-class HexagonalPointMapperSVG(puzzle_svg.RegularPolygonPointMapper):
+@HexagonalSVGCreator.register_PointMapper
+class HexagonalPointMapperSVG(svg_creator.RegularPolygonPointMapper):
     def get_cell_center_point_by_position(self, cell_x, cell_y):
         size_angle = 2 * math.pi * 1 / 6
 
@@ -26,6 +24,7 @@ class HexagonalPointMapperSVG(puzzle_svg.RegularPolygonPointMapper):
         return (x, y)
 
 
-@HexagonalPuzzle.register_unsolved_svg_generator_class
-class UnslovedHexagonalPuzzleSVG(puzzle_svg.UnsolvedRegularPolygonPuzzleSVG, HexagonalPuzzleSVG):
+class UnsolvedHexagonalSVGCreator(
+        svg_creator.UnsolvedRegularPolygonSVGCreator,
+        HexagonalSVGCreator):
     pass

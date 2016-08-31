@@ -1,12 +1,12 @@
 import random
 import sys
 
-from slithering.base import puzzle_svg
+from slithering.base import svg_creator
 
 
 class Puzzle(object):
     target_internal_cells_percentage = 0.5
-    unsolved_svg_generator_class = puzzle_svg.UnsolvedPuzzleSVG
+    unsolved_svg_generator_class = svg_creator.UnsolvedSVGCreator
 
     def __init__(self, board, seed=None):
         self._frozen = False
@@ -123,7 +123,7 @@ class Puzzle(object):
 
 
 class RegularPolygonPuzzle(Puzzle):
-    unsolved_svg_generator_class = puzzle_svg.UnsolvedRegularPolygonPuzzleSVG
+    unsolved_svg_generator_class = svg_creator.UnsolvedRegularPolygonSVGCreator
 
     @property
     def cell_sides_count(self):
