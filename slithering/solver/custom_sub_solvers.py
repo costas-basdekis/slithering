@@ -1,6 +1,5 @@
 import itertools
 
-from slithering.solver.constraint_solver import ConstraintSolver
 from slithering.solver.constraints import WithPuzzleConstraints, \
     Constraint, Case
 from slithering.solver.sub_solvers import PuzzleSubSolver, \
@@ -12,9 +11,6 @@ from slithering.solver.solver import PuzzleSolver
 class CellHintSubSolver(WithPuzzleConstraints, CellSubSolver):
     @classmethod
     def is_suitable(cls, solver, puzzle, cell):
-        if not hasattr(solver, 'constraint_solver'):
-            return False
-
         if not cell.hint_is_given:
             return False
 
@@ -146,9 +142,6 @@ class CellSolvedSideSubSolver(CellSubSolver):
 class CornerConstraints(WithPuzzleConstraints, CornerSubSolver):
     @classmethod
     def is_suitable(cls, solver, puzzle, corner):
-        if not hasattr(solver, 'constraint_solver'):
-            return False
-
         return True
 
     def apply(self):
@@ -182,11 +175,6 @@ class PuzzleConstraints(WithPuzzleConstraints, PuzzleSubSolver):
     @classmethod
     def is_suitable(cls, solver, puzzle):
         return True
-
-    def __init__(self, solver, puzzle):
-        super(PuzzleConstraints, self).__init__(solver, puzzle)
-        self.solver.constraint_solver = self.constraint_solver = \
-            ConstraintSolver(self.puzzle, debug=True)
 
     def apply(self):
         changed = self.constraint_solver.apply()

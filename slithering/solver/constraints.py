@@ -5,11 +5,17 @@ from slithering.solver.sub_solvers import PuzzleSubSolver
 
 class WithPuzzleConstraints(PuzzleSubSolver):
     @property
-    def constraints(self):
-        if not hasattr(self.puzzle, 'constraints'):
-            self.puzzle.constraints = Constraints()
+    def constraint_solver(self):
+        if not hasattr(self.solver, 'constraint_solver'):
+            from slithering.solver.constraint_solver import ConstraintSolver
+            self.solver.constraint_solver = \
+                ConstraintSolver(self.puzzle, debug=True)
 
-        return self.puzzle.constraints
+        return self.solver.constraint_solver
+
+    @property
+    def constraints(self):
+        return self.constraint_solver.constraints
 
 
 class Constraints(set):

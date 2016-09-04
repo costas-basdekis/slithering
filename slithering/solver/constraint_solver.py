@@ -1,16 +1,13 @@
 import itertools
 
-from slithering.solver.constraints import Constraint, Case
+from slithering.solver.constraints import Constraint, Case, Constraints
 
 
 class ConstraintSolver(object):
     def __init__(self, puzzle, debug=False):
         self.puzzle = puzzle
         self.debug = debug
-
-    @property
-    def constraints(self):
-        return self.puzzle.constraints
+        self.constraints = Constraints()
 
     def apply(self):
         changed = False
