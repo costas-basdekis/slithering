@@ -9,9 +9,8 @@ from slithering.solver.solver import PuzzleSolver
 
 @PuzzleSolver.register_cell_sub_solver_class
 class CellHintSubSolver(WithPuzzleConstraints, CellSubSolver):
-    @classmethod
-    def is_suitable(cls, solver, puzzle, cell):
-        if not cell.hint_is_given:
+    def is_suitable(self):
+        if not self.cell.hint_is_given:
             return False
 
         return True
@@ -47,15 +46,14 @@ class CellHintSubSolver(WithPuzzleConstraints, CellSubSolver):
 @PuzzleSolver.register_cell_sub_solver_class
 class CellSolvedEdgeSideSubSolver(CellSubSolver):
     """An edge side of cell is solved"""
-    @classmethod
-    def is_suitable(cls, solver, puzzle, cell):
-        if cell.solved:
+    def is_suitable(self):
+        if self.cell.solved:
             return False
 
-        if not cell.is_on_edge:
+        if not self.cell.is_on_edge:
             return False
 
-        solved_on_edge_sides = cell.sides.solved & cell.sides.on_edge
+        solved_on_edge_sides = self.cell.sides.solved & self.cell.sides.on_edge
         if not any(solved_on_edge_sides):
             return False
 
@@ -91,14 +89,13 @@ class CellSolvedEdgeSideSubSolver(CellSubSolver):
 @PuzzleSolver.register_cell_sub_solver_class
 class CellSolvedSideSubSolver(CellSubSolver):
     """An non-edge side of cell is solved"""
-    @classmethod
-    def is_suitable(cls, solver, puzzle, cell):
-        if cell.solved:
+    def is_suitable(self):
+        if self.cell.solved:
             return False
 
         solved_sides_with_solved_cell = {
             side
-            for side in cell.sides.solved
+            for side in self.cell.sides.solved
             if any(side.cells.solved)
         }
         if not any(solved_sides_with_solved_cell):
@@ -140,8 +137,7 @@ class CellSolvedSideSubSolver(CellSubSolver):
 
 @PuzzleSolver.register_corner_sub_solver_class
 class CornerConstraints(WithPuzzleConstraints, CornerSubSolver):
-    @classmethod
-    def is_suitable(cls, solver, puzzle, corner):
+    def is_suitable(self):
         return True
 
     def apply(self):
@@ -172,8 +168,7 @@ class CornerConstraints(WithPuzzleConstraints, CornerSubSolver):
 
 @PuzzleSolver.register_puzzle_sub_solver_class
 class PuzzleConstraints(WithPuzzleConstraints, PuzzleSubSolver):
-    @classmethod
-    def is_suitable(cls, solver, puzzle):
+    def is_suitable(self):
         return True
 
     def apply(self):

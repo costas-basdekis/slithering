@@ -16,8 +16,7 @@ class SubSolver(object):
 
         return self.hash_key() == other.hash_key()
 
-    @classmethod
-    def is_suitable(cls, *args, **kwargs):
+    def is_suitable(self):
         """Check whether the sub-solver can be created from the arguments"""
         raise NotImplementedError()
 
@@ -40,10 +39,6 @@ class PuzzleSubSolver(SubSolver):
     def hash_key(self):
         return tuple((type(self), self.puzzle))
 
-    @classmethod
-    def is_suitable(cls, solver, puzzle):
-        raise NotImplementedError()
-
 
 class CellSubSolver(PuzzleSubSolver):
     def __init__(self, solver, puzzle, cell):
@@ -53,10 +48,6 @@ class CellSubSolver(PuzzleSubSolver):
     def hash_key(self):
         return tuple((type(self), self.cell.key))
 
-    @classmethod
-    def is_suitable(cls, solver, puzzle, cell):
-        raise NotImplementedError()
-
 
 class CornerSubSolver(PuzzleSubSolver):
     def __init__(self, solver, puzzle, corner):
@@ -65,7 +56,3 @@ class CornerSubSolver(PuzzleSubSolver):
 
     def hash_key(self):
         return tuple((type(self), self.corner.key))
-
-    @classmethod
-    def is_suitable(cls, solver, puzzle, corner):
-        raise NotImplementedError()

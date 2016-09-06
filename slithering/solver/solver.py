@@ -26,32 +26,32 @@ class PuzzleSolver(object):
 
     def __init__(self, puzzle):
         self.puzzle = puzzle
-        self.sub_solvers = self.find_new_sub_solvers()
+        self.sub_solvers = self.create_sub_solvers()
         self.all_sub_solvers = frozenset(self.sub_solvers)
 
-    def find_new_sub_solvers(self):
+    def create_sub_solvers(self):
         sub_solvers = frozenset()
 
-        sub_solvers |= self.find_new_puzzle_sub_solvers()
-        sub_solvers |= self.find_new_cell_sub_solvers()
-        sub_solvers |= self.find_new_side_sub_solvers()
-        sub_solvers |= self.find_new_corner_sub_solvers()
+        sub_solvers |= self.create_puzzle_sub_solvers()
+        sub_solvers |= self.create_cell_sub_solvers()
+        sub_solvers |= self.create_side_sub_solvers()
+        sub_solvers |= self.create_corner_sub_solvers()
 
         return sub_solvers
 
-    def find_new_puzzle_sub_solvers(self):
+    def create_puzzle_sub_solvers(self):
         return self.create_suitable_puzzle_sub_solvers(
             self.puzzle_sub_solver_classes)
 
-    def find_new_cell_sub_solvers(self):
+    def create_cell_sub_solvers(self):
         return self.create_suitable_puzzle_item_sub_solvers(
             self.puzzle.cells, self.cell_sub_solver_classes)
 
-    def find_new_side_sub_solvers(self):
+    def create_side_sub_solvers(self):
         return self.create_suitable_puzzle_item_sub_solvers(
             self.puzzle.sides, self.side_sub_solver_classes)
 
-    def find_new_corner_sub_solvers(self):
+    def create_corner_sub_solvers(self):
         return self.create_suitable_puzzle_item_sub_solvers(
             self.puzzle.corners, self.corner_sub_solver_classes)
 
@@ -59,7 +59,6 @@ class PuzzleSolver(object):
         return frozenset(
             sub_solver_class(self, self.puzzle)
             for sub_solver_class in sub_solver_classes
-            if sub_solver_class.is_suitable(self, self.puzzle)
         )
 
     def create_suitable_puzzle_item_sub_solvers(
@@ -68,18 +67,14 @@ class PuzzleSolver(object):
             sub_solver_class(self, self.puzzle, item)
             for item in items
             for sub_solver_class in sub_solver_classes
-            if sub_solver_class.is_suitable(self, self.puzzle, item)
         )
 
     def apply(self):
         changed = False
 
         for sub_solver in self.sub_solvers:
-            changed |= sub_solver.apply()
-
-        new_sub_solvers = self.find_new_sub_solvers() - self.all_sub_solvers
-        self.sub_solvers |= new_sub_solvers
-        self.all_sub_solvers |= new_sub_solvers
+            if sub_solver.is_suitable():
+                changed |= sub_solver.apply()
 
         self.sub_solvers = frozenset(
             sub_solver
