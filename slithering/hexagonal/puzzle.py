@@ -1,7 +1,9 @@
 from slithering.base.puzzle import RegularPolygonPuzzle
+from slithering.hexagonal import svg_creator
 
 
 class HexagonalPuzzle(RegularPolygonPuzzle):
+    unsolved_svg_generator_class = svg_creator.UnsolvedHexagonalSVGCreator
     @property
     def width(self):
         return self.board.width

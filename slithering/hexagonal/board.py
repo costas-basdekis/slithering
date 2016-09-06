@@ -1,8 +1,10 @@
 from slithering.base import parts
+from slithering.hexagonal import svg_creator
 from slithering.regular_polygon.board import RegularPolygonBoard
 
 
 class HexagonalBoard(RegularPolygonBoard):
+    svg_generator_class = svg_creator.HexagonalSVGCreator
     cell_sides_count = 6
 
     def __init__(self, width, height, **kwargs):
